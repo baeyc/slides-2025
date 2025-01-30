@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Statistiques computationnelles</title>
+    <meta charset="utf-8" />
+    <meta name="author" content=" Charlotte Baey " />
+    <script src="libs/header-attrs-2.29/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/hygge.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Statistiques computationnelles
+]
+.author[
+### <font size="5"> Charlotte Baey </font>
+]
+.date[
+### <font size="5"> M1 MA - 2024/2025 </font>
+]
+
+---
+
+
+&lt;style&gt;
+
+.remark-slide-content {
+  background-color: #FFFFFF;
+  border-top: 80px solid #16A085;
+  font-size: 20px;
+  line-height: 1.5;
+  padding: 1em 2em 1em 2em
+}
+
+.my-one-page-font {
+  font-size: 20px;
+}
+
+.remark-slide-content &gt; h1 {
+  font-size: 38px;
+  margin-top: -85px;
+}
+
+.inverse {
+  background-color: #16A085;
+  border-top: 80px solid #16A085;
+  text-shadow: none;
+	background-position: 50% 75%;
+  background-size: 150px;
+  font-size: 40px
+}
+
+.title-slide {
+  background-color: #16A085;
+  border-top: 80px solid #16A085;
+  background-image: none;
+}
+
+.remark-slide-number {
+  position: absolute;
+}
+
+.remark-slide-number .progress-bar-container {
+  position: absolute;
+  bottom: 0;
+  height: 4px;
+  display: block;
+  left: 0;
+  right: 0;
+}
+
+.remark-slide-number .progress-bar {
+  height: 100%;
+  background-color: grey;
+}
+
+.left-column {
+  width: 20%;
+  height: 92%;
+  float: left;
+}
+.left-column h2:last-of-type, .left-column h3:last-child {
+  color: #000;
+}
+.right-column {
+  width: 75%;
+  float: right;
+  padding-top: 1em;
+}
+
+
+.left-column2 {
+  width: 60%;
+  height: 92%;
+  float: left;
+}
+.right-column2 {
+  width: 35%;
+  height: 92%;
+  float: left;
+}
+
+&lt;/style&gt;
+
+&lt;script type="text/x-mathjax-config"&gt;
+MathJax.Hub.Config({
+  TeX: {
+    Macros: {
+      yellow: ["{\\color{yellow}{#1}}", 1],
+      orange: ["{\\color{orange}{#1}}", 1],
+      green: ["{\\color{green}{#1}}", 1]
+    },
+    loader: {load: ['[tex]/color']},
+    tex: {packages: {'[+]': ['color']}}
+  }
+});
+&lt;/script&gt;
+
+&lt;style type="text/css"&gt;
+.left-code {
+  width: 40%;
+  height: 92%;
+  float: left;
+}
+.right-plot {
+  width: 59%;
+  float: right;
+  padding-left: 1%;
+}
+&lt;/style&gt;
+
+&lt;style type="text/css"&gt;
+.left-plot {
+  width: 59%;
+  float: left;
+}
+.right-code {
+  width: 40%;
+  float: right;
+  padding-left: 1%;
+}
+&lt;/style&gt;
+
+
+
+
+
+
+# Quelques informations pratiques
+
+### Plan du cours
+1. Méthodes de ré-échantillonnage
+2. Méthodes de Monte-Carlo
+3. Introduction aux statistiques bayésiennes
+4. Algorithme EM (s'il reste du temps)
+
+### Organisation
+
+- 2 séances de cours d'1h30 par semaine (`\(\times\)` 11 semaines)
+- 2 séances de TD/TP de 2h par semaine (`\(\times\)` 12 semaines)
+
+### Evaluation
+
+- 1 DS intermédiaire d'une durée de 2h
+- 1 Projet **à effectuer en binôme**
+- 1 DS final d'une durée de 3h
+
+.red[**Aucun document autorisé lors des examens.**]
+
+---
+# Sommaire
+
+&lt;/br&gt;
+**1. Méthodes de ré-échantillonnage**
+  - [Cours 1](#c1) (13/01/2025)
+  - [Cours 2](#c2) (14/01/2025)
+  - [Cours 3](#c3) (20/01/2025)
+  - [Cours 4](#c4) (21/01/2025)
+  - [Cours 5](#c5) (27/01/2025)
+  
+**2. Méthodes de Monte-Carlo**
+  - [Cours 6](#c6) (28/01/2025)
+
+---
+name: c1
+class: inverse, middle, center
+
+# Introduction
+
+
+---
+class: my-one-page-font 
+# C'est quoi les statistiques computationnelles ?
+
+&lt;br&gt;
+
+&lt;br&gt;
+
+ - C'est le recours (plus ou moins) intensif à l'ordinateur pour répondre à des questions statistiques que l'on ne sait pas (ou difficilement) résoudre autrement.
+ 
+ - On utilise/développe/étudie des algorithmes, des astuces numériques/statistiques/computationnelles 
+ - L'objectif est de faire de l'inférence, d'étudier la robustesse de méthodes statistiques, de traiter de grands jeux de données, ...
+ 
+ 
+
+---
+
+class: inverse, middle, center
+
+# I. Méthodes de ré-échantillonnage
+
+---
+
+# Notion d'échantillon
+
+Qu'est-ce qu'un échantillon ?
+
+- une suite de variables aléatoires `\(\mathcal{X} = (X_1, \dots, X_n)\)`
+- dont on observe une réalisation `\(\mathcal{X}(\omega) = (X_1(\omega), \dots, X_n(\omega))\)`
+
+---
+# Notion d'échantillon
+
+Qu'est-ce qu'un échantillon ?
+
+- une suite de variables aléatoires `\(\mathcal{X} = (X_1, \dots, X_n)\)`
+- dont on observe une réalisation `\(\mathcal{X}(\omega) = (X_1(\omega), \dots, X_n(\omega))\)`
+
+Que représente `\(\omega\)` ?
+- l'aléa autour de l'expérience (ex. : `\(n\)` lancers d'une pièce de monnaie)
+- cet aléa `\(\omega \in \Omega\)` est transporté dans `\(\mathbb{R}\)` via `\(X_i\)`
+&lt;!-- - on a seulement accès à la variabilité sur `\(\mathbb{R}\)` --&gt;
+- en général, on ne dispose que d'une seule réalisation, pour un `\(\omega\)` donné
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-4-1.png" width="2000px" /&gt;
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-5-1.png" width="2000px" /&gt;
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-6-1.png" width="2000px" /&gt;
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-7-1.png" width="2000px" /&gt;
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-8-1.png" width="2000px" /&gt;
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-9-1.png" width="2000px" /&gt;
+
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-10-1.png" width="2000px" /&gt;
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-11-1.png" width="2000px" /&gt;
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-12-1.png" width="2000px" /&gt;
+
+---
+# Statistique paramétrique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-13-1.png" width="2000px" /&gt;
+
+
+---
+# Un exemple simple 
+
+Soit `\((X_1,\dots,X_n)\)` un échantillon gaussien i.i.d. de loi `\(\mathcal{N}(\theta,1)\)`, et `\(\hat{\theta}\)` l'EMV de `\(\theta\)`. Quelle est la loi de `\(\hat{\theta}\)` ?
+
+--
+
+.pull-left[
+
+``` r
+theta_vrai &lt;- 2; n &lt;- 100; N &lt;- 500
+hat_theta &lt;- rep(0,N)
+for (i in 1:N){
+  ech_i &lt;- rnorm(n,theta_vrai,1)
+  hat_theta[i] &lt;- mean(ech_i)
+}
+hist(hat_theta,freq=F)
+curve(dnorm(x,theta_vrai,1/sqrt(n)))
+```
+]
+.pull-right[
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-15-1.png" width="432" /&gt;
+]
+---
+class: my-one-page-font 
+# Jackknife
+
+Comment construire de nouveaux échantillons ?
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-16-1.png" width="720" /&gt;
+
+---
+class: my-one-page-font 
+# Jackknife
+
+Comment construire de nouveaux échantillons ?
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-17-1.png" width="720" /&gt;
+
+
+---
+# Jackknife 
+
+#### 1. Réduction du biais
+
+ - Estimation du biais : 
+
+`$$\hat{b}_{jack} = (n-1)(\hat{\theta}_{jack} - \hat{\theta}),$$` avec `\(\hat{\theta}_{jack} = \frac{1}{n}\sum_{i=1}^n \hat{\theta}_{(i)}\)`.
+
+ - Pseudo-valeurs :
+
+`$$\tilde{\theta}_{(i)} = n\hat{\theta} - (n-1)\hat{\theta}_{(i)}$$`
+&lt;!-- Sur l'exemple précédent, cela donne : --&gt;
+ &lt;!-- \tilde{\theta}_{(1)} = \tilde{\theta}_{(2)} = \tilde{\theta}_{(3)} = \tilde{\theta}_{(7)} = \tilde{\theta}_{(8)} = \tilde{\theta}_{(10)} = \tilde{\theta}_{(12)} = 13\times0.5384 - 12\times0.50 = 0.9992
+ \tilde{\theta}_{(4)} = \tilde{\theta}_{(5)} = \tilde{\theta}_{(6)} = \tilde{\theta}_{(9)} = \tilde{\theta}_{(11)} = \tilde{\theta}_{(13)} = 13\times0.5384 - 12\times0.5833 = -0.0004 --&gt;
+
+
+ - Estimateur jackknife corrigé du biais :
+
+`$$\hat{\theta}^*_{jack} = \hat{\theta} - \hat{b}_{jack} = \frac{1}{n}\sum_{i=1}^n \tilde{\theta}_{(i)}$$`
+.red[**Réduire le biais n'implique pas nécessairement une amélioration de l'estimateur (au sens du risque quadratique)**]
+
+
+---
+# Jackknife
+
+#### 2. Estimation de la variance
+
+ `$$\hat{s}^2_{jack} = \frac{n-1}{n} \sum_{i=1}^n \big(\hat{\theta}_{(i)} - \hat{\theta}^*_{jack}\big)^2$$`
+ 
+avec les pseudo-valeurs : `\(\hat{s}^2_{jack} = \frac{1}{n(n-1)} \sum_{i=1}^n \big(\tilde{\theta}_{(i)} - \tilde{\theta}\big)^2\)`
+
+--
+
+#### 3. Construction d'intervalles de confiance
+
+Si existence d'un TCL :
+- en utilisant l'estimateur jackknife de la variance : 
+ `$$\hat{I}_{jack} = \left[\hat{\theta} - q^{\mathcal{N(0,1)}}_{1-\alpha/2} \hat{s}_{jack} ; \hat{\theta} + q^{\mathcal{N(0,1)}}_{1-\alpha/2} \hat{s}_{jack} \right]$$`
+
+- en utilisant les deux estimateurs :
+  `$$\hat{I}_{jack} = \left[\hat{\theta}_{jack} - q^{\mathcal{N(0,1)}}_{1-\alpha/2} \hat{s}_{jack} ; \hat{\theta}_{jack} + q^{\mathcal{N(0,1)}}_{1-\alpha/2} \hat{s}_{jack} \right]$$`
+
+&lt;span style="color:#16A085"&gt;**fin du cours 1 (13/01/2025)**&lt;/span&gt;
+
+
+---
+name: c2
+# Résumé et remarques
+
+&lt;br&gt;
+- le jackknife est une méthode **non-paramétrique** permettant d'estimer le biais et la variance d'un estimateur à l'aide de simulations 
+
+- la consistance est garantie pour un grand nombre d'estimateurs **suffisamment réguliers**
+
+- les hypothèses de régularité sont toutefois plus strictes que pour un TCL par exemple :
+ - la delta-méthode requiert la différentiabilité de `\(g\)` en `\(\mu=\mathbb{E}(X_1)\)`
+ - la consistance de `\(\hat{s}_{jack}\)` requiert que `\(g'\)` soit continue en `\(\mu\)`
+ - ex. d'estimateur pour lequel `\(\hat{s}_{jack}\)` n'est pas consistant : la médiane empirique (malgré existence TCL)
+ 
+- extensions possibles reposant sur des hypothèses moins fortes : 
+ - le *delete-d* jackknife
+ - le jackknife infinitésimal
+ &lt;!-- - peut-être utilisé pour la médiane empirique --&gt;
+ &lt;!-- - peut permettre d'estimer la distribution de `\(\hat{\theta}\)` --&gt;
+
+&lt;!--&lt;/br&gt;
+&lt;span style="color:#16A085"&gt;**fin du cours 1 (22/01/2024)**&lt;/span&gt;--&gt;
+
+---
+# Du jackknife au bootstrap
+
+ - `\(\hat{\theta} = T(\underbrace{X_1,\dots,X_n}_{\text{observations}},\underbrace{\omega_1,\dots,\omega_n}_{\text{poids des obs.}}) = T(X_1,\dots,X_n,\frac{1}{n},\dots,\frac{1}{n})\)`
+ 
+ - réplication jackknife : `\(\hat{\theta}_{(i)} = T(X_1,\dots,X_{i-1},X_i,X_{i+1},X_n,\frac{1}{n-1},\dots,\frac{1}{n-1},0,\frac{1}{n-1},\dots,\frac{1}{n-1})\)`
+
+--
+
+ - Idée du bootstrap : mettre des poids **aléatoires**
+
+--
+
+ - Procédure de ré-échantillonnage : tirer uniformément et **avec remise** parmi les observations de `\(\mathcal{X}\)`, pour construire un échantillon *bootstrap* de taille `\(n\)` noté `\(\mathcal{X}^*\)` :
+ 
+ - Puis sur chaque échantillon bootstrap, on construit la statistique bootstrapée `\(\hat{\theta}^* = T(\mathcal{X}^*)\)`
+
+---
+# Bootstrap
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-18-1.png" width="2000px" /&gt;
+
+---
+# Bootstrap
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-19-1.png" width="2000px" /&gt;
+
+---
+# Bootstrap
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-20-1.png" width="2000px" /&gt;
+
+
+---
+# Bootstrap
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-21-1.png" width="2000px" /&gt;
+
+---
+# Bootstrap
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-22-1.png" width="2000px" /&gt;
+
+---
+# Bootstrap
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-23-1.png" width="2000px" /&gt;
+
+---
+# Bootstrap
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-24-1.png" width="2000px" /&gt;
+
+---
+# Bootstrap
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-25-1.png" width="2000px" /&gt;
+
+
+
+---
+# Fonction de répartition empirique
+
+ 
+
+```
+##  [1] -0.88 -0.75  1.38  0.24  0.11  1.20 -0.46  0.64  0.42  0.78
+```
+
+--
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-27-1.png" width="720" /&gt;
+
+---
+# Fonction de répartition empirique
+
+ 
+
+```
+##  [1] -0.88 -0.75  1.38  0.24  0.11  1.20 -0.46  0.64  0.42  0.78
+```
+
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-29-1.png" width="720" /&gt;
+
+---
+
+# Fonction de répartition empirique
+
+ - Echantillon exponentiel
+ 
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-30-1.png" width="1152" /&gt;
+
+ - Echantillon uniforme
+ 
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-31-1.png" width="1152" /&gt;
+
+---
+# Bootstrap
+
+.pull-left[
+### Monde réel
+.left[
+&lt;span style="color:white"&gt;**on raisonne conditionnellement à `\(F_n\)`**&lt;/span&gt;
+- échantillon `\(\mathcal{X} = (X_1,\dots,X_n)\)`
+- `\(X_i\)` de loi inconnue `\(F\)`
+- paramètre `\(\theta(F)\)`
+- estimateur `\(\hat{\theta} = T(\mathcal{X})\)`
+- loi de `\(\hat{\theta}\)` : `\(G\)` inconnue
+]
+]
+.pull-right[
+### Monde Bootstrap 
+.left[
+&lt;span style="color:red"&gt;**on raisonne conditionnellement à `\(F_n\)`**&lt;/span&gt;
+- échantillon bootstrap `\(\mathcal{X}^* = (X_{1}^*,\dots,X_{n}^*)\)`
+- `\(X_{i}^*\)` de loi connue `\(F_n\)`
+- paramètre `\(\theta(F_n) = \hat{\theta}\)`
+- statistique bootstrapée `\(\hat{\theta}^* = T(\mathcal{X}^*)\)`
+- loi de `\(\hat{\theta}^*\)` : `\(G^*\)` connue
+]
+]
+
+&lt;/br&gt;
+.center[
+`\(G\)` inconnue `\(\longrightarrow\)` `\(G^*\)` connue `\(\longrightarrow\)` `\(\hat{G}^*_B\)` approximation bootstrap
+]
+
+&lt;/br&gt;
+&lt;span style="color:#16A085"&gt;**fin du cours 2 (14/01/2025)**&lt;/span&gt;
+
+
+---
+name: c3
+# Bootstrap : principe du plug-in
+
+ - on remplace `\(F\)` par sa version empirique `\(F_n\)` 
+
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-32-1.png" width="864" /&gt;
+&lt;!-- .pull-left[ --&gt;
+&lt;!-- .center[ --&gt;
+&lt;!-- espérance : `\(\theta = \int x dF(x)\)` ]]--&gt;
+&lt;!-- .pull-right[ --&gt;
+&lt;!-- espérance : `\(\int x dF_n(x) = \frac{1}{n} \sum_{i=1}^n X_i\)`] --&gt;
+
+---
+# Bootstrap : principe du plug-in
+
+#### Exemple  
+`\(\theta = \mathbb{E}(X_1) = \int x dF(x)\)` 
+
+--
+
+Méthode du plug-in : on estime `\(\theta\)` par `\(\hat{\theta} = \int x dF_n(x) = \frac{1}{n}\sum_{i=1}^n X_i\)`.
+
+--
+
+Dans l'échantillon bootstrap, les `\(X_{b,i}^*\)` sont distribuées selon la loi `\(F_n\)`, et ont pour espérance
+
+`\(\theta^* = \int x dF_n(x) = \hat{\theta}\)`
+
+--
+
+La statistique bootstrapée `\(\hat{\theta}^*_b = \frac{1}{n}\sum_{i=1}^n X_{b,i}^*\)` est donc à `\(\theta^*\)` ce que `\(\hat{\theta}\)` est à `\(\theta\)`.
+
+---
+# Bootstrap 
+
+#### Exemple 2 : estimation du biais de `\(\hat{\theta}\)`
+
+Paramètre `\(\theta(F)\)` estimé par `\(\hat{\theta} = \theta(F_n)\)`
+
+--
+
+Biais : `\(b(\hat{\theta}) = \mathbb{E}_F(\hat{\theta}) - \theta = \int xdG(x) - \theta(F)\)`
+
+--
+
+Dans le monde bootstrap : 
+
+`$$b^*(\hat{\theta}) = \int x dG^*(x) - \theta(F_n) = \int x dG^*(x) - \hat{\theta}$$`
+
+--
+
+Estimateur du bootstrap :
+
+`$$\hat{b}^*(\hat{\theta}) = \int x d\hat{G}^*_B(x) - \hat{\theta} = \frac{1}{B} \sum_{i=1}^B \hat{\theta}^*_b - \hat{\theta}$$`
+
+---
+# Bootstrap
+
+#### Exemple 3 : estimation de la variance de `\(\hat{\theta}\)`
+
+Variance : `\(\text{Var} (\hat{\theta}) = \mathbb{E}_F\big[(\hat{\theta} - \mathbb{E}(\hat{\theta}))^2\big] = \int (x - \int x dG(x))^2dG(x)\)`
+
+--
+
+Dans le monde bootstrap :
+
+`$$\text{Var}^*(\hat{\theta}) = \int (x - \int x dG^*(x))^2 dG^*(x)$$`
+
+--
+
+Estimateur du bootstrap :
+
+`$$\hat{\text{Var}}^*(\hat{\theta}) = \int (x - \int x d\hat{G}_B^*(x))^2 d\hat{G}_B^*(x) = \frac{1}{B} \sum_{b=1}^B \big(\hat{\theta}^*_b - \frac{1}{B} \sum_{b=1}^B \hat{\theta}^*_b \big)^2$$`
+
+`\(\rightarrow\)` c'est la variance empirique des statistiques bootstrapées `\(\hat{\theta}^*_1,\dots,\hat{\theta}^*_B\)`.
+
+&lt;/br&gt;
+&lt;span style="color:#16A085"&gt;**fin du cours 3 (20/01/2025)**&lt;/span&gt;
+
+---
+name: c4
+# Construction d'intervalles de confiance
+
+#### Méthode du bootstrap classique
+Point de départ : l'existence d'une quantité pivotale, par exemple `\(\hat{\theta} - \theta\)`, de loi `\(H\)`.
+
+--
+ 
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-33-1.png" width="360" /&gt;
+ 
+--
+
+IC : `\(I(1-\alpha) =  \big[\hat{\theta} - H^{-1}(1-\alpha/2); \hat{\theta} - H^{-1}(\alpha/2)\big]\)`
+ 
+---
+# Construction d'intervalles de confiance
+ 
+Version bootstrap empirique : `\(\hat{I}^*(1-\alpha) =  \big[\hat{\theta} - (\hat{H}^*_B)^{-1}(1-\alpha/2); \hat{\theta} - (\hat{H}^*_B)^{-1}(\alpha/2)\big]\)`
+ 
+#### Calcul des quantiles de `\(\hat{H}^*_B\)`
+ 
+ - `\(H^*(x) = G^*(x + \hat{\theta})\)`
+ 
+--
+ 
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-34-1.png" width="504" /&gt;
+
+--
+ 
+ - `\((H^*)^{-1}(y) = (G^*)^{-1}(y) - \hat{\theta}\)`
+ 
+---
+# Construction d'intervalles de confiance
+
+#### Méthode du bootstrap classique
+
+`$$\hat{I}_{boot}^*(1-\alpha) =  \big[2\hat{\theta} - \hat{\theta}^*_{(\lceil B(1-\alpha/2)\rceil )} ; 2\hat{\theta} - \hat{\theta}^*_{(\lceil B \alpha/2\rceil )}  \big]$$`
+---
+# Construction d'intervalles de confiance
+
+#### Méthode percentile
+
+&lt;span style="color:red"&gt;Hypothèse : il existe une transformation `\(h\)` **croissante** telle que la loi de `\(h(\hat{\theta})\)` soit symétrique autour de `\(\eta = h(\theta)\)`&lt;/span&gt;
+
+
+IC pour `\(\eta\)` : 
+$$IC_\eta(1-\alpha) = \left[U - H^{-1}_U\left( 1 - \frac{\alpha}{2}\right) ; U - H^{-1}_U \left(\frac{\alpha}{2}\right)\right]. $$
+
+ - `\(h\)` inconnue ?
+ - `\(H_U\)` inconnue ?
+
+---
+# Construction d'intervalles de confiance
+
+Démarche :
+ 1. construire les échantillons bootstrap `\(\mathcal{X}_1^*, \dots, \mathcal{X}_B^*\)`
+ 2. construire les statistiques bootstrapées `\(\hat{\theta}^*_1, \dots, \hat{\theta}^*_B\)` et leurs transformations par `\(h\)` : `\(U_b^* = h(\hat{\theta}^*_b), \forall b\)`
+ 3. définir la fonction de répartition de la statistique bootstrap : `$$H^*_{U} (x) = \mathbb{P}(U_b^* - U \leq x \mid F_n)$$`
+ 4. intervalle de confiance bootstrap pour `\(\eta = h(\theta)\)` : `$$IC_\eta^*(1-\alpha) = \left[U - H^{*-1}_{U}\left(1 -\frac{\alpha}{2} \right) ; U - H^{* \ -1}_{U}\left(\frac{\alpha}{2} \right) \right]$$`
+ 
+ 
+ 
+---
+# Construction d'intervalles de confiance
+
+.pull-left[
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-35-1.png" width="360" style="display: block; margin: auto;" /&gt;
+]
+.pull-right[
+&lt;/br&gt;
+&lt;/br&gt;
+&lt;/br&gt;
+&lt;/br&gt;
+`\(H^{* \ -1}_{U}\left(\frac{\alpha}{2} \right) = - H^{* \ -1}_{U}\left(1 - \frac{\alpha}{2} \right)\)`
+]
+
+`$$IC_{\eta}^*(1-\alpha) = \left[U + H^{*-1}_{U}\left(\frac{\alpha}{2} \right) ; U + H^{* \ -1}_{U}\left(1-\frac{\alpha}{2} \right) \right]$$`
+
+--
+
+`$$IC_{\eta}^*(1-\alpha) = \left[G^{*-1}_{U}\left(\frac{\alpha}{2} \right) ; G^{* \ -1}_{U}\left(1-\frac{\alpha}{2} \right) \right]$$`
+&lt;span style="color:#16A085"&gt;**fin du cours 4 (21/01/2025)**&lt;/span&gt;
+
+
+---
+name: c5
+# Construction d'intervalles de confiance
+
+#### Méthode percentile
+
+`$$\hat{I}_{perc}^*(1-\alpha) =  \big[\hat{\theta}^*_{(\lceil B\alpha/2\rceil )} ; \hat{\theta}^*_{(\lceil B(1- \alpha/2)\rceil )}  \big]$$`
+&lt;/br&gt;
+&lt;/br&gt;
+&lt;/br&gt;
+&lt;/br&gt;
+&lt;/br&gt;
+
+
+
+
+---
+# Construction d'intervalles de confiance
+
+#### Méthode `\(t\)`-percentile
+
+Repose sur l'existence d'une quantité pivotale de la forme (de loi notée `\(J_n\)`):
+
+`$$S_n = \sqrt{n} \ \frac{\hat{\theta} - \theta}{\hat{\sigma}}$$`
+--
+
+IC classique : `\(IC(1-\alpha) = \left[\hat{\theta} - \frac{\hat{\sigma}}{\sqrt{n}} J_n^{-1}\left(1-\frac{\alpha}{2}\right) ; \hat{\theta} - \frac{\hat{\sigma}}{\sqrt{n}} J_n^{-1}\left(\frac{\alpha}{2}\right) \right]\)`
+
+
+--
+
+Démarche bootstrap :
+1. construire les échantillons bootstrap `\(\mathcal{X}_1^*, \dots, \mathcal{X}_B^*\)`
+2. construire les statistiques bootstrapées `\(S^*_b = \sqrt{n} \ \frac{\hat{\theta}^*_b - \hat{\theta}}{\hat{\sigma}^*_b}, \quad b=1,\dots,B\)`
+3. approcher `\(J_n^{-1}\)` par les quantiles empiriques des statistiques bootstrapées
+	
+	
+`$$\hat{I}_{t-\text{boot}}^*(1-\alpha) =  \left[\hat{\theta} - \frac{\hat{\sigma}}{\sqrt{n}} S^*_{\big(\lceil B(1-\frac{\alpha}{2})\rceil\big)}; \hat{\theta} - \frac{\hat{\sigma}}{\sqrt{n}} S^*_{\big(\lceil B(\frac{\alpha}{2})\rceil \big)} \right]$$`
+
+---
+# Intervalles de confiance bootstrap
+
+- IC du bootstrap classique :
+`$$\hat{I}_{boot}^*(1-\alpha) =  \big[2\hat{\theta} - \hat{\theta}^*_{(\lceil B(1-\alpha/2)\rceil )} ; 2\hat{\theta} - \hat{\theta}^*_{(\lceil B \alpha/2\rceil )}  \big]$$`
+
+- IC du bootstrap percentile :
+ `$$\hat{I}_{perc}^*(1-\alpha) =  \big[\hat{\theta}^*_{(\lceil B\alpha/2\rceil )} ; \hat{\theta}^*_{(\lceil B(1- \alpha/2)\rceil )}  \big]$$`
+ 
+- IC du bootstrap `\(t\)`-percentile :
+ `$$\hat{I}_{t-\text{boot}}^*(1-\alpha) =  \left[\hat{\theta} - \frac{\hat{\sigma}}{\sqrt{n}} S^*_{(\lceil B(1-\frac{\alpha}{2})\rceil)}; \hat{\theta} - \frac{\hat{\sigma}}{\sqrt{n}} S^*_{(\lceil B(\frac{\alpha}{2})\rceil)} \right]$$`
+
+
+---
+# Paramétrique ou non paramétrique ?
+
+- Jusqu'à présent, on a décrit des procédures de bootstrap dit **non-paramétrique**
+
+--
+
+- En effet, on n'a fait aucune hypothèse sur la loi `\(F\)`, ni exploité sa forme paramétrique
+
+--
+
+- Au contraire, on a échantillonné les `\(X_{b,i}^*\)` selon la loi `\(F_n\)`, qui est un estimateur **non-paramétrique** de `\(F\)`
+
+ &lt;/br&gt;
+ 
+--
+
+- Il est possible de faire du bootstrap **paramétrique**
+
+--
+
+- Dans ce cas, on va utiliser la forme paramétrique de la loi `\(F\)`, que l'on note `\(F_\theta\)`.
+
+--
+
+- On échantillonne alors les `\(X_{b,i}^*\)` selon la loi `\(F_{\hat{\theta}}\)`, qui est un estimateur **paramétrique** de `\(F\)`
+
+&lt;!-- &lt;table&gt; --&gt;
+&lt;!--   &lt;tr style="font-weight:bold"&gt; --&gt;
+&lt;!--     &lt;td&gt; &lt;/td&gt; --&gt;
+&lt;!--     &lt;td&gt;Bootstrap non paramétrique&lt;/td&gt; --&gt;
+&lt;!--     &lt;td&gt;Bootstrap paramétrique&lt;/td&gt; --&gt;
+&lt;!--   &lt;/tr&gt; --&gt;
+&lt;!--   &lt;tr&gt; --&gt;
+&lt;!--     &lt;td&gt;hypothèse sur `\(F\)`&lt;/td&gt; --&gt;
+&lt;!--     &lt;td&gt;pas d'hypothèse particulière&lt;/td&gt; --&gt;
+&lt;!--     &lt;td&gt;$F = F_\theta$&lt;/td&gt; --&gt;
+&lt;!--   &lt;/tr&gt; --&gt;
+&lt;!-- &lt;tr&gt; --&gt;
+&lt;!--     &lt;td&gt;échantillonnage&lt;/td&gt; --&gt;
+&lt;!--     &lt;td&gt;selon loi `\(F_n\)`&lt;/td&gt; --&gt;
+&lt;!--     &lt;td&gt;selon loi `\(F_{\hat{\theta}}\)`&lt;/td&gt; --&gt;
+&lt;!--   &lt;/tr&gt;   --&gt;
+&lt;!-- &lt;/table&gt; --&gt;
+
+&lt;/br&gt;
+
+--
+
+.center[.red[**RQ : c'est parfois la seule approche possible**]]
+
+---
+# Tests bootstrap
+
+Procédure de test usuelle pour un test de niveau `\(\alpha\)` :
+
+--
+
+- choix des hypothèses `\(H_0\)` et `\(H_1\)`
+
+--
+
+- choix d'une statistique de test `\(T(\mathcal{X})\)`
+
+--
+
+- identification de la loi (éventuellement asymptotique) de `\(T(\mathcal{X})\)`
+
+--
+
+- déterminer la région de rejet **ou** calculer la `\(p\)`-valeur du test
+
+--
+
+- conclure
+
+&lt;/br&gt;
+--
+
+.center[.red[&amp;rarr;** quelles sont les difficultés possibles ?**]]
+
+---
+# Tests bootstrap
+
+Procédure de test usuelle pour un test de niveau `\(\alpha\)` :
+
+
+- choix des hypothèses `\(H_0\)` et `\(H_1\)` .green[**&amp;rarr; ok**]
+
+
+- choix d'une statistique de test `\(T(\mathcal{X})\)` .green[**&amp;rarr; ok**]
+
+
+- identification de la loi (éventuellement asymptotique) de `\(T(\mathcal{X})\)` .red[**&amp;rarr; loi inconnue**]
+
+- déterminer la région de rejet **ou** calculer la `\(p\)`-valeur du test .red[**&amp;rarr; non calculable**]
+
+
+- conclure
+
+
+---
+# Tests bootstrap
+
+#### Exemple avec du bootstrap non paramétrique
+
+`\(X_1,\dots,X_n\)` i.i.d. de loi `\(F_1\)` et `\(Y_1,\dots,Y_m\)` i.i.d. de loi `\(F_2\)`.
+
+`$$H_0 : F_1 =  F_2 \quad \text{vs.} \quad H_1 : F_1 \neq F_2$$`
+ 
+--
+
+On suppose que :
+ - l'égalité en loi se traduit par une égalité de certains paramètres
+--
+
+ - l'on dispose d'une statistique de test `\(T(\mathcal{X})\)` 
+
+--
+
+&lt;/br&gt;
+**Objectif** : construire une version bootstrap de `\(T\)` &lt;span style="color:red"&gt;**sous `\(H_0\)`**&lt;/span&gt;
+
+---
+# Tests bootstrap
+
+#### Exemple avec du boostrap paramétrique
+
+`\(X_1,\dots,X_n\)` i.i.d. de loi `\(F_{\theta,\eta}\)`, et
+
+`$$H_0 : \theta =  \theta_0 \quad \text{vs.} \quad H_1 : \theta \neq \theta_0$$`
+
+&amp;rarr; `\(\eta\)` est un *paramètre de nuisance*.
+
+&lt;/br&gt;
+--
+
+Exemple du TRV :
+
+$$ T(X_1,\dots,X_n) = \frac{L(X_1,\dots,X_n ; \hat{\theta}, \hat{\eta}_1)}{L(X_1,\dots,X_n ; \theta_0, \hat{\eta}_0)},$$
+&lt;/br&gt;
+--
+
+&lt;span style="color:red"&gt;**&amp;rarr; la loi de `\(T\)` sous `\(H_0\)` n'est pas connue en présence de paramètres de nuisnace**&lt;/span&gt;
+
+&lt;/br&gt;
+&lt;span style="color:#16A085"&gt;**fin du cours 5 (27/01/2025)**&lt;/span&gt;
+
+---
+name: c6
+class: inverse, middle, center
+
+# II. Méthodes de Monte-Carlo
+
+---
+# Un peu d'histoire ...
+
+- première expérience de type Monte Carlo dûe à Buffon au XVIIIème siècle &amp;rarr; l'aiguille de Buffon
+
+.center[
+&lt;img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Buffon_needle.svg/1920px-Buffon_needle.svg.png" width="200" align="center"&gt;]
+
+--
+
+- les méthodes actuelles sont nées pendant la seconde guerre mondiale au laboratoire américain de Los Alamos &amp;rarr; nom de code *Monte-Carlo*
+
+.center[
+&lt;img src="https://frenchriviera.travel/wp-content/uploads/2018/03/Monte-Carlo-Casino1.jpg" width="300" align="center"&gt;
+]
+
+
+
+---
+# Objectif
+
+- Question principale : **l'approximation d'intégrales**
+
+$$\int h(x) dx $$
+
+- Outil théorique à la base des méthodes de Monte-Carlo : **la loi forte des grands nombres**
+
+- Outil pratique nécessaire : **la simulation de variables aléatoires**
+
+
+---
+
+class: inverse, middle, center
+
+# 1. Génération de variables aléatoires
+
+---
+# Génération de variables aléatoires
+
+Lois usuelles &amp;rarr; disponibles sous la plupart des langages ou logiciels 
+
+
+
+
+``` r
+# Sous R
+rexp(n=10, rate=1/5)
+```
+
+```
+##  [1] 2.3466261 1.9510857 5.9010095 0.4384056 0.2316887 0.4712571 0.5493962 3.1169243 1.4005475 1.2041220
+```
+
+
+``` python
+# Sous Python
+from scipy.stats import expon
+expon.rvs(scale=5, size=10)
+```
+
+.red[**attention aux conventions utilisées dans chaque langage !**]
+
+---
+#  Méthode de la fonction inverse
+
+Repose sur le résultat suivant :
+&gt; Soit `\(F\)` une f.d.r. et `\(F^{-}\)` son inverse (généralisée). Soit `\(U \sim \mathcal{U}([0,1])\)`. Alors `\(X = F^{-}(U)\)` suit la loi `\(F\)`.
+
+--
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-39-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+
+---
+#  Méthode de la fonction inverse
+
+Repose sur le résultat suivant :
+&gt; Soit `\(F\)` une f.d.r. et `\(F^{-}\)` son inverse (généralisée). Soit `\(U \sim \mathcal{U}([0,1])\)`. Alors `\(X = F^{-}(U)\)` suit la loi `\(F\)`.
+
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-40-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+#  Méthode de la fonction inverse
+
+Repose sur le résultat suivant :
+&gt; Soit `\(F\)` une f.d.r. et `\(F^{-}\)` son inverse (généralisée). Soit `\(U \sim \mathcal{U}([0,1])\)`. Alors `\(X = F^{-}(U)\)` suit la loi `\(F\)`.
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-41-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+
+---
+#  Méthode de la fonction inverse
+
+Repose sur le résultat suivant :
+&gt; Soit `\(F\)` une f.d.r. et `\(F^{-}\)` son inverse (généralisée). Soit `\(U \sim \mathcal{U}([0,1])\)`. Alors `\(X = F^{-}(U)\)` suit la loi `\(F\)`.
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-42-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Exemple
+
+Loi de Cauchy, de densité `\(f(x) = \frac{1}{\pi(1+x^2)}\)`
+
+--
+
+
+``` r
+u &lt;- runif(10000)
+finv &lt;- function(u){tan(pi*(u-0.5))}
+x &lt;- finv(u)
+```
+
+--
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-44-1.png" width="432" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Méthode d'acceptation-rejet
+
+Proposition :
+&gt; Soit `\(X\)` une v.a. de densité `\(f\)` et soit `\(g\)` une densité de probabilité et une constante `\(M \geq 1\)` t.q. `\(\forall x, f(x) \leq M g(x)\)`. Alors pour simuler selon la loi `\(f\)` il suffit de :
+1. simuler `\(Y \sim g\)`
+2. simuler `\(U | Y=y \sim \mathcal{U}([0,Mg(y)])\)`
+3. si `\(0 &lt; U &lt; f(Y)\)`, poser `\(X=Y\)`, sinon reprendre l'étape 1.
+
+*Preuve*  &lt;div class="horizontalgap" style="width:10px"&gt;&lt;/div&gt; 
+
+--
+
+Remarques :
+- on a seulement besoin de connaître `\(f\)` à une constante multiplicative près
+- `\(\forall x, f(x) \leq M g(x) \Rightarrow \text{supp}(f) \subset \text{supp}(g)\)`
+- probabilité d'accepter un candidat : `\(\frac{1}{M}\)` (influence du choix de `\(g\)`)
+
+
+&lt;span style="color:#16A085"&gt;**fin du cours 6 (28/01/2025)**&lt;/span&gt;
+
+
+---
+# Méthode d'acceptation-rejet
+
+Illustration
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-45-1.png" width="720" style="display: block; margin: auto;" /&gt;
+
+---
+# Méthode d'acceptation-rejet
+
+- Tirage de `\(Y\)` selon la loi `\(g\)`
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-46-1.png" width="720" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Méthode d'acceptation-rejet
+
+- Tirage de `\(U\)` conditionnellement à `\(Y=y\)` selon la loi `\(\mathcal{U}([0,Mg(y)])\)` &amp;rarr; on rejette
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-47-1.png" width="720" style="display: block; margin: auto;" /&gt;
+
+---
+# Méthode d'acceptation-rejet
+
+- Tirage de `\(U\)` conditionnellement à `\(Y=y\)` selon la loi `\(\mathcal{U}([0,Mg(y)])\)` &amp;rarr; on accepte 
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-48-1.png" width="720" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+# Méthode d'acceptation-rejet
+
+A la fin :
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-49-1.png" width="720" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+# Exemple 
+
+On veut simuler `\(X\)` selon la loi normale centrée réduite à l'aide d'une loi exponentielle de paramètre 1.
+
+1. par symétrie de la loi normale, il suffit de savoir simuler selon la loi de `\(|X|\)` 
+
+--
+
+2. on génère ensuite `\(Z\)`, une Bernoulli de paramètre 1/2 et on pose `\(X = |X|\)` si `\(Z=1\)` et `\(X=-|X|\)` si `\(Z=0\)`.
+
+--
+
+3. il faut trouver une constante `\(M\)` telle que `\(f(x)\leq M g(x)\)` pour tout `\(x\)` avec :
+- densité cible `\(f(x) = \frac{2}{\sqrt{2\pi}} e^{-x^2/2} \mathbb{1}_{x\geq 0}\)`
+- densité de la loi exponentielle `\(g(x) = e^{-x} \mathbb{1}_{x&gt;0}\)`
+
+
+---
+class: my-one-page-font
+# Exemple
+
+
+``` r
+n &lt;- 1000
+f &lt;- function(x){ifelse(x&gt;0,sqrt(2/pi)*exp(-x^2/2),0)}
+g &lt;- function(x){ifelse(x&gt;0,exp(-x),0)}
+
+M &lt;- sqrt(2*exp(1)/pi) # env. 1.31 -&gt; 1/M = 0.76
+U1 &lt;- runif(n)
+Y &lt;- -log(U1)
+U2 &lt;- runif(n,min = 0, max = M*g(Y))
+absX &lt;- Y[U2&lt;f(Y)]
+Z &lt;- 2*rbinom(length(absX),size = 1, p=1/2) - 1
+X &lt;- Z*absX
+```
+
+--
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-51-1.png" width="648" style="display: block; margin: auto;" /&gt;
+
+---
+# Un cas particulier
+
+Un cas particulier intéressant : le cas `\(f\)` bornée à support compact.
+
+--
+
+- on prend pour `\(g\)` la loi uniforme sur le support de `\(f\)`
+- et on simule `\(U\)` uniforme sur `\([0,m]\)` où `\(m=\max_x f(x)\)`
+
+--
+
+ex. : `\(\displaystyle f(x) = \frac{1}{8} |x^4 - 5x^2 + 4| \ \mathbb{1}_{[-2,2]}(x)\)`
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-52-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+---
+# Un cas particulier
+
+Un cas particulier intéressant : le cas `\(f\)` bornée à support compact.
+
+- on prend pour `\(g\)` la loi uniforme sur le support de `\(f\)`
+- et on simule `\(U\)` uniforme sur `\([0,m]\)` où `\(m=\max_x f(x)\)`
+
+ex. : `\(\displaystyle f(x) = \frac{1}{8} |x^4 - 5x^2 + 4| \ \mathbb{1}_{[-2,2]}(x)\)`
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-53-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+---
+# Un cas particulier
+
+`\(f(x) = \frac{1}{8} |x^4 - 5x^2 + 4| \ \mathbb{1}_{[-2,2]}(x)\)`
+
+.pull-left[
+
+``` r
+Y &lt;- runif(10000,-2,2)
+U &lt;- runif(10000,0,0.5)
+
+accept &lt;- (U&lt;fdens(Y))
+X &lt;- Y[accept]
+
+hist(X,breaks=50,freq=F)
+points(x,fx,type="l",col="red")
+```
+
+
+
+
+``` r
+mean(accept)
+```
+
+```
+## [1] 0.4954
+```
+
+&amp;rarr; la moitié des points simulés est 'perdue'
+]
+
+.pull-right[
+![](slides_25_files/figure-html/unnamed-chunk-57-1.png)&lt;!-- --&gt;
+]
+
+
+---
+# Un cas particulier
+
+Visuellement : on peut représenter les points acceptés dans le rectangle `\([-2,2] \times [0,1/2]\)`
+
+&lt;/br&gt;
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-58-1.png" style="display: block; margin: auto;" /&gt;
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"slideNumberFormat": "%current%"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
