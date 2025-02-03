@@ -194,6 +194,8 @@ Sys.setenv('RETICULATE_PYTHON'='/usr/bin/python3')
   
 **2. Méthodes de Monte-Carlo**
   - [Cours 6](#c6) (28/01/2025)
+  - [Cours 7](#c7) (03/02/2025)
+  - [Cours 7](#c8) (04/02/2025)
 
 ---
 name: c1
@@ -1218,6 +1220,7 @@ Remarques :
 
 
 ---
+name: c7
 # Méthode d'acceptation-rejet
 
 Illustration
@@ -1442,4 +1445,128 @@ dpoints$accept <- factor(dpoints$accept,labels=c("Rejeté","Accepté"))
 dpoints$n <- rep(seq(100,10000,by=100),each=100)
 ggplot(data = dpoints, aes(x=x,y=y,col=accept))  + geom_point(size=0.9) + geom_line(data=ddens, linewidth=1.1) + scale_color_discrete(name="") + scale_color_brewer(name="",palette="Dark2")# + transition_states(n) + shadow_mark() 
 ```
+
+---
+
+class: inverse, middle, center
+
+# 1. Méthodes de Monte-Carlo
+
+---
+# Monte Carlo classique
+
+**Objectif** : calculer une intégrale de la forme $\int h(x) f(x) dx$ où $f$ est une densité de probabilité.
+
+--
+
+> *Définition.* Soit $X_1,\dots,X_n$ un échantillon i.i.d. de loi $f$. L'estimateur de Monte Carlo de $\mathbb{E}(h(X))$ est :
+$$\hat{h}_n = \frac{1}{n} \sum_{i=1}^n h(X_i)$$
+
+
+Propriétés :
+- estimateur sans biais
+- fortement consistant
+- IC avec le TCL
+
+Remarques :
+- vitesse de convergence en $\sqrt{n}$, indépendante de la dimension
+- ne dépend pas de la régularité de $h$
+
+---
+# Exemples d'applications
+
+#### Approcher la $p$-valeur d'un test
+
+ex. avec le test du rapport de vraisemblance d'un modèle gaussien :
+$$H_0 : \quad (\mu,\sigma^2)=(\mu_0,\sigma_0^2)\quad\textrm{ contre }\quad H_1 : \quad (\mu,\sigma^2)\neq(\mu_0,\sigma_0^2).$$
+
+--
+
+On a la statistique de test suivante (voir DS de Stat Math 2024) : 
+$$2\ln V_n= T_n^2-n\ln T_n^2 + Z^2 + n\ln n -n,$$
+
+avec $Z=\sqrt{n}\big(\frac{\hat{\mu}_n-\mu_0}{\sigma_0}\big) \quad \textrm{et}\quad T_n^2=\frac{n\hat{\sigma}^2_n}{\sigma_0^2}$.
+
+Problème : la loi de la statistique de test n'est pas connue (tabulée).
+
+---
+# Exemples d'applications
+
+Les données :
+```{r, echo=FALSE}
+x <- c(98.23,97.91,98.24,99.00,102.64,103.44,103.81,100.64,100.86,98.79,103.48, 98.10,101.11, 98.30,96.56,98.77,100.15,101.58,97.51,100.87,101.99, 98.59,98.72,103.97,94.75,97.92,102.30, 96.88,101.44,100.12)
+x
+n <- length(x)
+```
+--
+
+.pull-left[
+```{r}
+Tn2 <- (n-1)*var(x)/4
+V_obs <- Tn2 - n*log(Tn2) + n*(mean(x)-100)^2/4 + n*log(n) - n
+print(V_obs)
+
+N <- 100000
+T <- rchisq(N,n-1)   
+Z <- rnorm(N,0,1)    
+V <- T - n*log(T) + Z^2 + n*log(n) - n
+p_val <- mean(V > V_obs)
+print(p_val)
+```
+]
+.pull-right[
+```{r, echo=FALSE, warnings=FALSE,message=FALSE}
+ggplot(data=NULL,aes(x=V)) + geom_histogram(aes(y=after_stat(density)),fill="grey",col="darkgrey") + geom_vline(xintercept = V_obs, col="red")
+```
+]
+
+---
+# Exemples d'applications
+
+On peut quantifier l'erreur d'approximation :
+
+.pull-left[
+```{r paged.print=FALSE, eval=FALSE}
+N <- c(100,1000,2000,5000,10000,20000,
+       50000,100000,200000,300000)
+p_val <- rep(0,length(N))
+for (i in 1:length(N)){
+  T <- rchisq(N[i],n-1)   
+  Z <- rnorm(N[i],0,1)    
+  V <- T-n*log(T)+Z^2+n*log(n)-n
+  p_val[i] <- mean(V > V_obs)
+}
+```
+]
+.pull-right[
+```{r, echo=FALSE, fig.width=6,fig.height=4, fig.retina=2}
+N <- c(100,1000,2000,5000,10000,20000,
+       50000,100000,200000,300000)
+
+p_val <- rep(0,length(N))
+for (i in 1:length(N)){
+  T <- rchisq(N[i],n-1)   
+  Z <- rnorm(N[i],0,1)    
+  V <- T-n*log(T)+Z^2+n*log(n)-n
+  p_val[i] <- mean(V > V_obs)
+}
+d <- data.frame(phat = p_val, lb = p_val-qnorm(0.975)*sqrt(p_val*(1-p_val)/N), ub = p_val+qnorm(0.975)*sqrt(p_val*(1-p_val)/N), n = N)
+ggplot(data=d,aes(n,phat)) + geom_line() + geom_line(aes(n,lb),col="red") + geom_line(aes(n,ub),col="red") + ylab("Estimation de p") 
+```
+]
+
+---
+# Exemples d'application
+
+Plus généralement, les méthodes de Monte Carlo s'utilisent pour :
+
+- approcher le niveau ou la puissance d'un test
+
+- approcher une intégrale en grande dimension
+
+- faire de l'optimisation (e.g. algorithme du recuit simulé, descente de gradient stochastique, ...)
+
+- ...
+
+<span style="color:#16A085">**fin du cours 7 (03/02/2025)**</span>
 

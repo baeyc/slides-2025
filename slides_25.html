@@ -185,6 +185,7 @@ MathJax.Hub.Config({
   
 **2. Méthodes de Monte-Carlo**
   - [Cours 6](#c6) (28/01/2025)
+  - [Cours 7](#c7) (03/02/2025)
 
 ---
 name: c1
@@ -952,7 +953,8 @@ rexp(n=10, rate=1/5)
 ```
 
 ```
-##  [1] 2.3466261 1.9510857 5.9010095 0.4384056 0.2316887 0.4712571 0.5493962 3.1169243 1.4005475 1.2041220
+##  [1] 2.3466261 1.9510857 5.9010095 0.4384056 0.2316887 0.4712571 0.5493962
+##  [8] 3.1169243 1.4005475 1.2041220
 ```
 
 
@@ -1044,6 +1046,7 @@ Remarques :
 
 
 ---
+name: c7
 # Méthode d'acceptation-rejet
 
 Illustration
@@ -1195,6 +1198,139 @@ Visuellement : on peut représenter les points acceptés dans le rectangle `\([-
 &lt;/br&gt;
 
 &lt;img src="slides_25_files/figure-html/unnamed-chunk-58-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+
+class: inverse, middle, center
+
+# 1. Méthodes de Monte-Carlo
+
+---
+# Monte Carlo classique
+
+**Objectif** : calculer une intégrale de la forme `\(\int h(x) f(x) dx\)` où `\(f\)` est une densité de probabilité.
+
+--
+
+&gt; *Définition.* Soit `\(X_1,\dots,X_n\)` un échantillon i.i.d. de loi `\(f\)`. L'estimateur de Monte Carlo de `\(\mathbb{E}(h(X))\)` est :
+`$$\hat{h}_n = \frac{1}{n} \sum_{i=1}^n h(X_i)$$`
+
+
+Propriétés :
+- estimateur sans biais
+- fortement consistant
+- IC avec le TCL
+
+Remarques :
+- vitesse de convergence en `\(\sqrt{n}\)`, indépendante de la dimension
+- ne dépend pas de la régularité de `\(h\)`
+
+---
+# Exemples d'applications
+
+#### Approcher la `\(p\)`-valeur d'un test
+
+ex. avec le test du rapport de vraisemblance d'un modèle gaussien :
+`$$H_0 : \quad (\mu,\sigma^2)=(\mu_0,\sigma_0^2)\quad\textrm{ contre }\quad H_1 : \quad (\mu,\sigma^2)\neq(\mu_0,\sigma_0^2).$$`
+
+--
+
+On a la statistique de test suivante (voir DS de Stat Math 2024) : 
+`$$2\ln V_n= T_n^2-n\ln T_n^2 + Z^2 + n\ln n -n,$$`
+
+avec `\(Z=\sqrt{n}\big(\frac{\hat{\mu}_n-\mu_0}{\sigma_0}\big) \quad \textrm{et}\quad T_n^2=\frac{n\hat{\sigma}^2_n}{\sigma_0^2}\)`.
+
+Problème : la loi de la statistique de test n'est pas connue (tabulée).
+
+---
+# Exemples d'applications
+
+Les données :
+
+```
+##  [1]  98.23  97.91  98.24  99.00 102.64 103.44 103.81 100.64 100.86  98.79
+## [11] 103.48  98.10 101.11  98.30  96.56  98.77 100.15 101.58  97.51 100.87
+## [21] 101.99  98.59  98.72 103.97  94.75  97.92 102.30  96.88 101.44 100.12
+```
+--
+
+.pull-left[
+
+``` r
+Tn2 &lt;- (n-1)*var(x)/4
+V_obs &lt;- Tn2 - n*log(Tn2) + n*(mean(x)-100)^2/4 + n*log(n) - n
+print(V_obs)
+```
+
+```
+## [1] 1.600647
+```
+
+``` r
+N &lt;- 100000
+T &lt;- rchisq(N,n-1)   
+Z &lt;- rnorm(N,0,1)    
+V &lt;- T - n*log(T) + Z^2 + n*log(n) - n
+p_val &lt;- mean(V &gt; V_obs)
+print(p_val)
+```
+
+```
+## [1] 0.45853
+```
+]
+.pull-right[
+![](slides_25_files/figure-html/unnamed-chunk-61-1.png)&lt;!-- --&gt;
+]
+
+---
+# Exemples d'applications
+
+On peut quantifier l'erreur d'approximation :
+
+.pull-left[
+
+``` r
+N &lt;- c(100,1000,2000,5000,10000,20000,
+       50000,100000,200000,300000)
+p_val &lt;- rep(0,length(N))
+for (i in 1:length(N)){
+  T &lt;- rchisq(N[i],n-1)   
+  Z &lt;- rnorm(N[i],0,1)    
+  V &lt;- T-n*log(T)+Z^2+n*log(n)-n
+  p_val[i] &lt;- mean(V &gt; V_obs)
+}
+```
+]
+.pull-right[
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-63-1.png" width="432" /&gt;
+]
+
+---
+# Exemples d'application
+
+Plus généralement, les méthodes de Monte Carlo s'utilisent pour :
+
+- approcher le niveau ou la puissance d'un test
+
+- approcher une intégrale en grande dimension
+
+- faire de l'optimisation (e.g. algorithme du recuit simulé, descente de gradient stochastique, ...)
+
+- ...
+
+
+---
+# Monte Carlo classique
+
+Estimation de `\(\mu = \int h(x) f(x) dx\)` à l'aide d'un échantillon `\(X_1,\dots,X_n\)` i.i.d. de loi `\(f\)` :
+`$$\hat{h}_n = \frac{1}{n} \sum_{i=1}^n h(X_i),$$` 
+
+ - estimateur sans biais, fortement consistant
+ - variance :
+ `$$\text{Var} (\hat{h}_n) = \frac{1}{n} \left(\int h^2(x)f(x)dx - \mu^2\right) = \frac{\sigma_f^2}{n}$$`
+ - `\(\sigma_f^2\)` estimée par : `$$v_n = \frac{1}{n} \sum_{i=1}^n h^2(X_i) - \hat{h}_n^2$$`
+ - IC de niveau `\(1-\alpha\)` : `$$\hat{I}_\mu =\left[\hat{h}_n - q_{1-\alpha/2}^{\mathcal{N}(0,1)} \sqrt{v_n/n} ; \hat{h}_n + q_{1-\alpha/2}^{\mathcal{N}(0,1)} \sqrt{v_n/n} \right]$$`
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
