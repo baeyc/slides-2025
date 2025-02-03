@@ -186,6 +186,7 @@ MathJax.Hub.Config({
 **2. Méthodes de Monte-Carlo**
   - [Cours 6](#c6) (28/01/2025)
   - [Cours 7](#c7) (03/02/2025)
+  - [Cours 7](#c8) (04/02/2025)
 
 ---
 name: c1
@@ -1319,18 +1320,7 @@ Plus généralement, les méthodes de Monte Carlo s'utilisent pour :
 
 - ...
 
-
----
-# Monte Carlo classique
-
-Estimation de `\(\mu = \int h(x) f(x) dx\)` à l'aide d'un échantillon `\(X_1,\dots,X_n\)` i.i.d. de loi `\(f\)` :
-`$$\hat{h}_n = \frac{1}{n} \sum_{i=1}^n h(X_i),$$` 
-
- - estimateur sans biais, fortement consistant
- - variance :
- `$$\text{Var} (\hat{h}_n) = \frac{1}{n} \left(\int h^2(x)f(x)dx - \mu^2\right) = \frac{\sigma_f^2}{n}$$`
- - `\(\sigma_f^2\)` estimée par : `$$v_n = \frac{1}{n} \sum_{i=1}^n h^2(X_i) - \hat{h}_n^2$$`
- - IC de niveau `\(1-\alpha\)` : `$$\hat{I}_\mu =\left[\hat{h}_n - q_{1-\alpha/2}^{\mathcal{N}(0,1)} \sqrt{v_n/n} ; \hat{h}_n + q_{1-\alpha/2}^{\mathcal{N}(0,1)} \sqrt{v_n/n} \right]$$`
+&lt;span style="color:#16A085"&gt;**fin du cours 7 (03/02/2025)**&lt;/span&gt;
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
