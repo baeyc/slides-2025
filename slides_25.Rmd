@@ -195,7 +195,7 @@ Sys.setenv('RETICULATE_PYTHON'='/usr/bin/python3')
 **2. Méthodes de Monte-Carlo**
   - [Cours 6](#c6) (28/01/2025)
   - [Cours 7](#c7) (03/02/2025)
-  - [Cours 7](#c8) (04/02/2025)
+  - [Cours 8](#c8) (04/02/2025)
 
 ---
 name: c1
@@ -1450,7 +1450,7 @@ ggplot(data = dpoints, aes(x=x,y=y,col=accept))  + geom_point(size=0.9) + geom_l
 
 class: inverse, middle, center
 
-# 1. Méthodes de Monte-Carlo
+# 2. Méthodes de Monte-Carlo
 
 ---
 # Monte Carlo classique
@@ -1570,3 +1570,386 @@ Plus généralement, les méthodes de Monte Carlo s'utilisent pour :
 
 <span style="color:#16A085">**fin du cours 7 (03/02/2025)**</span>
 
+---
+name: c8
+# Monte Carlo classique
+
+Estimation de $\mu = \int h(x) f(x) dx$ à l'aide d'un échantillon $X_1,\dots,X_n$ i.i.d. de loi $f$ :
+$$\hat{h}_n = \frac{1}{n} \sum_{i=1}^n h(X_i),$$
+
+--
+
+ - estimateur sans biais, fortement consistant
+ - variance :
+ $$\text{Var} (\hat{h}_n) = \frac{1}{n} \left(\int h^2(x)f(x)dx - \mu^2\right) = \frac{\sigma_f^2}{n}$$
+ - $\sigma_f^2$ estimée par : $$v_n = \frac{1}{n} \sum_{i=1}^n h^2(X_i) - \hat{h}_n^2$$
+ - IC de niveau $1-\alpha$ : $$\hat{I}_\mu =\left[\hat{h}_n - q_{1-\alpha/2}^{\mathcal{N}(0,1)} \sqrt{v_n/n} ; \hat{h}_n + q_{1-\alpha/2}^{\mathcal{N}(0,1)} \sqrt{v_n/n} \right]$$
+
+
+---
+# Monte Carlo classique
+
+**Exemple :** on veut calculer $\int_0^{2\pi} (\sin^2(x) + 2\cos(3x))^2 dx$
+
+--
+```{r,fig.align='center',fig.height=5,fig.width=7, fig.retina=2,echo=FALSE}
+curve((sin(x)^2+2*cos(3*x))^2,from=0,to=2*pi,n = 1000)
+```
+
+On peut ré-écrire l'intégrale sous la forme  
+$$
+\begin{eqnarray}
+I & = & 2\pi \int_{\mathbb{R}} (\sin^2(x) + 2\cos(3x))^2 \frac{1}{2\pi}1_{[0,2\pi]}(x)dx \\
+& = & 2\pi \ \mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])
+\end{eqnarray}
+$$
+
+---
+# Monte Carlo classique
+
+**Exemple :** on veut calculer $I=2\pi \ \mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])$
+
+On peut utiliser l'estimateur de Monte-Carlo suivant :
+ 1. on génère $X_1,\dots,X_n$ i.i.d. de loi uniforme sur $[0,2\pi]$
+
+
+```{r,fig.align='center',fig.height=6,fig.width=7, fig.retina=2,echo=FALSE}
+curve((sin(x)^2+2*cos(3*x))^2,from=0,to=2*pi,n = 1000)
+u <- runif(100,0,2*pi)
+```
+
+---
+# Monte Carlo classique
+
+**Exemple :** on veut calculer $I=2\pi \ \mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])$
+
+On peut utiliser l'estimateur de Monte-Carlo suivant :
+ 1. on génère $X_1,\dots,X_n$ i.i.d. de loi uniforme sur $[0,2\pi]$
+
+
+```{r,fig.align='center',fig.height=6,fig.width=7, fig.retina=2,echo=FALSE}
+curve((sin(x)^2+2*cos(3*x))^2,from=0,to=2*pi,n = 1000)
+u <- runif(100,0,2*pi)
+points(u,0*u,col="red",pch=19,cex=0.5)
+legend(0,8,legend=c("Xi"),col=c("red"),pch=19,bty="n")
+```
+
+---
+# Monte Carlo classique
+
+**Exemple :** on veut calculer $I=\mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])$
+
+On peut utiliser l'estimateur de Monte-Carlo suivant :
+ 1. on génère $X_1,\dots,X_n$ i.i.d. de loi uniforme sur $[0,2\pi]$
+ 2. on approche $I$ par $\hat{I} = 2 \pi \frac{1}{n}\sum_{i=1}^n (\sin^2(X_i) + 2\cos(3X_i))^2$
+
+```{r,fig.align='center',fig.height=6,fig.width=7, fig.retina=2,echo=FALSE}
+curve((sin(x)^2+2*cos(3*x))^2,from=0,to=2*pi,n = 1000)
+u <- runif(100,0,2*pi)
+points(u,0*u,col="red",pch=19,cex=0.5)
+segments(u,0*u,u,(sin(u)^2+2*cos(3*u))^2,col="red",lwd=0.2)
+points(u,(sin(u)^2+2*cos(3*u))^2,col="black",pch=19,cex=0.5)
+legend(0,8,legend=c("Xi","h(Xi)"),col=c("red","black"),pch=19,bty="n")
+```
+
+---
+# Monte Carlo classique
+
+```{r,fig.align='center',fig.height=6,fig.width=7, fig.retina=2,echo=FALSE}
+curve((sin(x)^2+2*cos(3*x))^2,from=0,to=2*pi,n = 1000)
+points(u,0*u,col="red",pch=19,cex=0.5)
+segments(u,0*u,u,(sin(u)^2+2*cos(3*u))^2,col="red",lwd=0.2)
+points(u,(sin(u)^2+2*cos(3*u))^2,col="black",pch=19,cex=0.5)
+legend(0,8,legend=c("Xi","h(Xi)"),col=c("red","black"),pch=19,bty="n")
+```
+On trouve : 
+```{r, echo=F}
+mi = mean((sin(u)^2+2*cos(3*u))^2)*2*pi
+vari = var((sin(u)^2+2*cos(3*u))^2)*4*pi*pi/100
+print(paste0("Estimation :",round(mi,5),", variance :",round(vari,5),", IC = ",paste0("[",paste0(round(mi+qnorm(c(0.025,0.975))*sqrt(vari),3),collapse=","),"]")))
+print(paste0("La vraie valeur est : ",round(integrate(function(x){(sin(x)^2+2*cos(3*x))^2},lower=0,upper=2*pi)$value,5)))
+```
+
+---
+
+class: inverse, middle, center
+
+# 3. Echantillonnage préférentiel
+
+---
+# Echantillonnage préférentiel
+
+**Objectif** : toujours d'évaluer $\mu = \int h(x) f(x) dx$
+
+
+On va **ré-écrire l'intégrale** sous la forme :
+
+$$\mu = \int h(x) f(x) dx = \int h(x) \frac{f(x)}{g(x)} g(x) dx,$$
+avec $g$ densité de probabilité, telle que $(g(x) = 0) \Rightarrow (h(x)f(x) = 0)$.
+
+--
+
+Pourquoi ?
+
+ - pas toujours possible de simuler selon la loi $f$, ou d'utiliser la méthode d'acceptation-rejet
+ - ou on s'intéresse à un évènement de probabilité trop faible
+ - dans certains cas cela permet de réduire la variance de l'estimateur
+
+---
+# Echantillonnage préférentiel
+
+> *Définition.* Soit $Z_1,\dots,Z_n$ un échantillon i.i.d. de loi $g$. L'estimateur par échantillonnage préférentiel de $\mu$ est :
+$$\tilde{h}_n = \frac{1}{n} \sum_{i=1}^n h(Z_i) \frac{f(Z_i)}{g(Z_i)} = \frac{1}{n} \sum_{i=1}^n w_i h(Z_i)$$
+
+Propriétés : (si $\text{supp}(f) \subset \text{supp}(g)$)
+
+- estimateur sans biais
+- fortement consistant
+
+Remarques :
+
+- On appelle *poids d'importance* les quantités $w_i = \frac{f(Z_i)}{g(Z_i)}$
+- La loi $g$ est appelée *loi instrumentale*
+
+
+---
+class: my-one-page-font
+# Echantillonnage préférentiel
+
+**Exemple 1** : on veut calculer $\int_0^1 e^{-x}x^{-a} dx$ pour $0 < a < 1$.
+
+--
+
+Monte Carlo classique &rarr; $f$ densité de la loi uniforme sur $[0,1]$ et $h(x) = e^{-x}x^{-a}$.
+
+--
+
+```{r} 
+set.seed(04022025)
+a <- 1/2
+n <- 1000
+X <- runif(n)
+hX <- exp(-X) * X^(-a)
+print(paste0("Estimation : ",mean(hX),", variance : ",var(hX)/n))
+```
+
+--
+
+Peut-on faire mieux ? 
+
+---
+# Echantillonnage préférentiel
+
+A quoi ressemble la fonction $h(x) = e^{-x}x^{-a}$ ?
+
+```{r,fig.align='center',fig.height=4,fig.width=5, fig.retina=2,echo=FALSE}
+xabs <- seq(0,1,0.001)
+yord <- exp(-xabs) * xabs^(-a)
+dd <- data.frame(x=xabs,y=yord)
+drug <- data.frame(x=X)
+ggplot(data=NULL,aes(x=xabs,y=yord)) + geom_line() + ggtitle("Fonction h") + xlab("x") + ylab("h")
+```
+
+
+---
+# Echantillonnage préférentiel
+
+A quoi ressemble la fonction $h(x) = e^{-x}x^{-a}$ ? 
+
+```{r,fig.align='center',fig.height=4,fig.width=7, fig.retina=2,echo=FALSE}
+xabs <- seq(0,1,0.001)
+yord <- exp(-xabs) * xabs^(-a)
+dd <- data.frame(x=xabs,y=yord)
+drug <- data.frame(x=X,Loi="Uniforme [0,1]")
+ggplot(data=NULL,aes(x=xabs,y=yord)) + geom_line() + geom_rug(data=drug,aes(x=x,col=Loi), inherit.aes=FALSE, linewidth=0.1) + ggtitle("Fonction h") + xlab("x") + ylab("h")
+
+#xpred <- rbinom(10000,10,ech_finv)
+#ggplot(data=NULL,aes(x=as.factor(xpred))) + geom_bar(fill="grey",col="darkgrey") + #geom_rug(aes(x=as.factor(X)),col="red",lwd=2,length=unit(0.05, "npc")) + xlab("Prédictions")
+```
+&rarr; en échantillonnant selon la loi uniforme, on obtient des points répartis de façon **uniforme** sur $[0,1]$.
+
+&rarr; Peut-on trouver une loi d'échantillonnage qui produise plus de points proches de 0 ?
+
+
+---
+class: my-one-page-font
+# Echantillonnage préférentiel
+
+Echantillonnage préférentiel : $g(x) = (1-a) \ x^{-a} \mathbb{1}_{[0,1]}(x)$ et $\tilde{h}(x) = e^{-x}/ (1-a).$
+
+--
+
+```{r, fig.align='center',fig.height=4,fig.width=5, fig.retina=2,echo=FALSE}
+yord2 <- (1-a)*xabs^(-a)
+ggplot(data=NULL,aes(x=xabs,y=yord2)) + geom_line() + ggtitle("Densité g") + xlab("x") + ylab("g")
+```
+--
+
+```{r} 
+Z <- X^(1/(1-a))
+hZ <- exp(-Z) / (1-a)
+print(paste0("Estimation : ",mean(hZ),", variance : ",var(hZ)/n))
+```
+
+On a diminué la variance par 100 pour une même taille d'échantillon.
+
+--
+Vraie valeur : 1.49365 (intégration numérique)
+
+
+---
+# Echantillonnage préférentiel
+
+Avant, on intégrait $h(x) = e^{-x}x^{-a}$ en utilisant la loi uniforme sur $[0,1]$.
+
+Maintenant, on intègre $\tilde{h}(x) = e^{-x}/(1-a)$ en utilisant la loi de densité $(1-a) \ x^{-a} \mathbb{1}_{[0,1]}(x)$.
+
+```{r,fig.align='center',fig.height=4,fig.width=12, fig.retina=2,echo=FALSE, message=F, warning=F}
+xabs2 <- seq(0,1,0.001)
+yord2 <- exp(-xabs2) / (1-a)
+drug2 <- data.frame(x=Z,Loi="Puissance")
+p1 <- ggplot(data=NULL,aes(x=xabs,y=yord)) + geom_line() + geom_rug(data=drug,aes(x=x,col=Loi), inherit.aes=FALSE, linewidth=0.1) + ggtitle("Fonction h") + xlab("x") + ylab("h")
+p2 <- ggplot(data=NULL,aes(x=xabs2,y=yord2)) + geom_line() + geom_rug(data=drug2,aes(x=x,col=Loi), inherit.aes=FALSE, linewidth=0.1) + ggtitle(str2expression(paste("Fonction","tilde(h)",sep="~"))) + xlab("x") + ylab(expression(tilde(h)))
+library(gridExtra)
+grid.arrange(p1,p2,ncol=2)
+```
+
+---
+# Echantillonnage préférentiel
+
+**Exemple 2** : calculer $\mathbb{P}(X>10)$ pour $X \sim \mathcal{E}(1)$.
+--
+
+```{r, results='hold'}
+1 - pexp(10) # vraie valeur calculée à l'aide de la fonction de répartition
+mean(rexp(1000)>10) # estimation par Monte Carlo naïf
+```
+--
+
+L'estimateur est nul ... on n'a peut-être pas eu de chance sur ce tirage de 1000 ? Et si on ré-essayait ?
+
+
+---
+# Echantillonnage préférentiel
+
+On tire 100 fois un échantillon de taille $n=1000$ et on regarde ce que vaut l'estimateur par Monte Carlo sur chacun de ces 100 tirages.
+
+```{r}
+repet_1000 <- sapply(1:100,FUN = function(i){mean(rexp(1000)>10)})
+```
+
+--
+
+```{r echo=FALSE, fig.align='center',fig.height=4,fig.width=4, fig.retina=2}
+hist(repet_1000,xlab="",main="",ylim=c(0,100))
+```
+&rarr; l'estimateur vaut presque tout le temps 0 (96 fois sur 100), le reste du temps il vaut 0.001 (dans ces 4 cas, cela veut dire qu'une seule observation sur les 1000 du tirage était plus grande que 10).
+
+---
+# Echantillonnage préférentiel
+
+
+Que se passe t-il si on augmente la taille des échantillons ?
+
+```{r}
+repet_1000 <- sapply(1:100,FUN = function(i){mean(rexp(1000)>10)})
+repet_10000 <- sapply(1:100,FUN = function(i){mean(rexp(10000)>10)})
+repet_100000 <- sapply(1:100,FUN = function(i){mean(rexp(100000)>10)})
+```
+
+```{r echo=FALSE, fig.height=4,fig.width=12, fig.retina=2}
+par(mfrow=c(1,3))
+hist(repet_1000,main="n=1000",xlab="",freq=F)
+hist(repet_10000,main="n=10000",xlab="",freq=F)
+hist(repet_100000,main="n=100000",xlab="",freq=F)
+```
+
+&rarr; on obtient des résultats "raisonnables" quand $n=100 000$, mais la variance reste très élevée.
+
+
+---
+# Echantillonnage préférentiel
+
+En prenant comme loi instrumentale $\mathcal{E}(1/10)$, on peut ré-écrire :
+
+$$\mathbb{P}(X>10) =\mathbb{E}\left(\mathbf{1}_{Z>10} \ 10 \ e^{-9Z/10}\right) \quad \text{où } Z \sim \mathcal{E}(1/10)$$
+En utilisant Monte-Carlo, on approche cette espérance à l'aide de la moyenne empirique d'un échantillon $Z_1,\dots,Z_n$ de taille $n$ de v.a. iid de loi exponentielle de paramètre 1/10.
+
+$$\hat{p} = \frac{1}{n} \sum_{i=1}^n 10 \ e^{-0.9 Z_i} \mathbf{1}_{Z_i > 10}$$
+
+---
+# Echantillonnage préférentiel
+
+Code correspondant (pour un tirage, donc une estimation) :
+
+```{r}
+Z <- rexp(n,1/10)
+w <- 10*exp(-9*Z/10)  # ou plus généralement : dexp(Z,1)/dexp(Z,1/10)
+mean(w*(Z>10))
+```
+
+--
+
+On fait plusieurs tirages (plusieurs estimations de $p$) :
+
+```{r, echo=F}
+repet_1000 <- sapply(1:100,FUN = function(i){Z<-rexp(1000,1/10);mean(10*exp(-0.9*Z)*(Z>10))})
+```
+
+```{r, echo=F, fig.retina=2, fig.height=5, fig.width=5, fig.align='center'}
+hist(repet_1000,main="n=1000",xlab="",freq=F)
+```
+
+C'est beaucoup mieux qu'avec la loi "naïve" !
+
+---
+# Echantillonnage préférentiel
+
+Avec la loi $\mathcal{E}(1)$ :
+```{r, echo=FALSE}
+repet_1000 <- sapply(1:100,FUN = function(i){mean(rexp(1000)>10)})
+repet_10000 <- sapply(1:100,FUN = function(i){mean(rexp(10000)>10)})
+repet_100000 <- sapply(1:100,FUN = function(i){mean(rexp(100000)>10)})
+```
+
+```{r echo=FALSE, fig.height=3.5,fig.width=12, fig.retina=2}
+ptrue <- 1-pexp(10)
+par(mfrow=c(1,3))
+hist(repet_1000,main="n=1000",xlab="",freq=F)
+abline(v=ptrue,col="red",lwd=2)
+hist(repet_10000,main="n=10000",xlab="",freq=F)
+abline(v=ptrue,col="red",lwd=2)
+hist(repet_100000,main="n=100000",xlab="",freq=F)
+abline(v=ptrue,col="red",lwd=2)
+```
+Avec la loi $\mathcal{E}(1/10)$ :
+
+```{r, echo=FALSE}
+repet_1000 <- sapply(1:100,FUN = function(i){Z<-rexp(1000,1/10);mean(10*exp(-0.9*Z)*(Z>10))})
+repet_10000 <- sapply(1:100,FUN = function(i){Z<-rexp(10000,1/10);mean(10*exp(-0.9*Z)*(Z>10))})
+repet_100000 <- sapply(1:100,FUN = function(i){Z<-rexp(100000,1/10);mean(10*exp(-0.9*Z)*(Z>10))})
+```
+
+```{r, echo=FALSE, fig.height=3.5,fig.width=12, fig.retina=2}
+par(mfrow=c(1,3))
+hist(repet_1000,main="n=1000",xlab="",freq=F)
+abline(v=ptrue,col="red",lwd=2)
+hist(repet_10000,main="n=10000",xlab="",freq=F,xlim=c(3e-5,6e-5))
+abline(v=ptrue,col="red",lwd=2)
+hist(repet_100000,main="n=100000",xlab="",freq=F,xlim=c(3e-5,6e-5))
+abline(v=ptrue,col="red",lwd=2)
+```
+
+
+
+---
+# Choix de la loi instrumentale
+
+- Calcul de la variance de $\tilde{h}_n$
+
+--
+
+- Choix optimal pour $g$ &rarr; celui qui minimise cette variance.
+
+
+<span style="color:#16A085">**fin du cours 8 (04/02/2025)**</span>

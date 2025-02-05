@@ -186,7 +186,7 @@ MathJax.Hub.Config({
 **2. Méthodes de Monte-Carlo**
   - [Cours 6](#c6) (28/01/2025)
   - [Cours 7](#c7) (03/02/2025)
-  - [Cours 7](#c8) (04/02/2025)
+  - [Cours 8](#c8) (04/02/2025)
 
 ---
 name: c1
@@ -1204,7 +1204,7 @@ Visuellement : on peut représenter les points acceptés dans le rectangle `\([-
 
 class: inverse, middle, center
 
-# 1. Méthodes de Monte-Carlo
+# 2. Méthodes de Monte-Carlo
 
 ---
 # Monte Carlo classique
@@ -1322,6 +1322,329 @@ Plus généralement, les méthodes de Monte Carlo s'utilisent pour :
 
 &lt;span style="color:#16A085"&gt;**fin du cours 7 (03/02/2025)**&lt;/span&gt;
 
+---
+name: c8
+# Monte Carlo classique
+
+Estimation de `\(\mu = \int h(x) f(x) dx\)` à l'aide d'un échantillon `\(X_1,\dots,X_n\)` i.i.d. de loi `\(f\)` :
+`$$\hat{h}_n = \frac{1}{n} \sum_{i=1}^n h(X_i),$$`
+
+--
+
+ - estimateur sans biais, fortement consistant
+ - variance :
+ `$$\text{Var} (\hat{h}_n) = \frac{1}{n} \left(\int h^2(x)f(x)dx - \mu^2\right) = \frac{\sigma_f^2}{n}$$`
+ - `\(\sigma_f^2\)` estimée par : `$$v_n = \frac{1}{n} \sum_{i=1}^n h^2(X_i) - \hat{h}_n^2$$`
+ - IC de niveau `\(1-\alpha\)` : `$$\hat{I}_\mu =\left[\hat{h}_n - q_{1-\alpha/2}^{\mathcal{N}(0,1)} \sqrt{v_n/n} ; \hat{h}_n + q_{1-\alpha/2}^{\mathcal{N}(0,1)} \sqrt{v_n/n} \right]$$`
+
+
+---
+# Monte Carlo classique
+
+**Exemple :** on veut calculer `\(\int_0^{2\pi} (\sin^2(x) + 2\cos(3x))^2 dx\)`
+
+--
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-64-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+On peut ré-écrire l'intégrale sous la forme  
+$$
+`\begin{eqnarray}
+I &amp; = &amp; 2\pi \int_{\mathbb{R}} (\sin^2(x) + 2\cos(3x))^2 \frac{1}{2\pi}1_{[0,2\pi]}(x)dx \\
+&amp; = &amp; 2\pi \ \mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])
+\end{eqnarray}`
+$$
+
+---
+# Monte Carlo classique
+
+**Exemple :** on veut calculer `\(I=2\pi \ \mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])\)`
+
+On peut utiliser l'estimateur de Monte-Carlo suivant :
+ 1. on génère `\(X_1,\dots,X_n\)` i.i.d. de loi uniforme sur `\([0,2\pi]\)`
+
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-65-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+# Monte Carlo classique
+
+**Exemple :** on veut calculer `\(I=2\pi \ \mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])\)`
+
+On peut utiliser l'estimateur de Monte-Carlo suivant :
+ 1. on génère `\(X_1,\dots,X_n\)` i.i.d. de loi uniforme sur `\([0,2\pi]\)`
+
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-66-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+# Monte Carlo classique
+
+**Exemple :** on veut calculer `\(I=\mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])\)`
+
+On peut utiliser l'estimateur de Monte-Carlo suivant :
+ 1. on génère `\(X_1,\dots,X_n\)` i.i.d. de loi uniforme sur `\([0,2\pi]\)`
+ 2. on approche `\(I\)` par `\(\hat{I} = 2 \pi \frac{1}{n}\sum_{i=1}^n (\sin^2(X_i) + 2\cos(3X_i))^2\)`
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-67-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+# Monte Carlo classique
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-68-1.png" width="504" style="display: block; margin: auto;" /&gt;
+On trouve : 
+
+```
+## [1] "Estimation :16.56502, variance :2.22047, IC = [13.644,19.486]"
+```
+
+```
+## [1] "La vraie valeur est : 14.92257"
+```
+
+---
+
+class: inverse, middle, center
+
+# 3. Echantillonnage préférentiel
+
+---
+# Echantillonnage préférentiel
+
+**Objectif** : toujours d'évaluer `\(\mu = \int h(x) f(x) dx\)`
+
+
+On va **ré-écrire l'intégrale** sous la forme :
+
+`$$\mu = \int h(x) f(x) dx = \int h(x) \frac{f(x)}{g(x)} g(x) dx,$$`
+avec `\(g\)` densité de probabilité, telle que `\((g(x) = 0) \Rightarrow (h(x)f(x) = 0)\)`.
+
+--
+
+Pourquoi ?
+
+ - pas toujours possible de simuler selon la loi `\(f\)`, ou d'utiliser la méthode d'acceptation-rejet
+ - ou on s'intéresse à un évènement de probabilité trop faible
+ - dans certains cas cela permet de réduire la variance de l'estimateur
+
+---
+# Echantillonnage préférentiel
+
+&gt; *Définition.* Soit `\(Z_1,\dots,Z_n\)` un échantillon i.i.d. de loi `\(g\)`. L'estimateur par échantillonnage préférentiel de `\(\mu\)` est :
+`$$\tilde{h}_n = \frac{1}{n} \sum_{i=1}^n h(Z_i) \frac{f(Z_i)}{g(Z_i)} = \frac{1}{n} \sum_{i=1}^n w_i h(Z_i)$$`
+
+Propriétés : (si `\(\text{supp}(f) \subset \text{supp}(g)\)`)
+
+- estimateur sans biais
+- fortement consistant
+
+Remarques :
+
+- On appelle *poids d'importance* les quantités `\(w_i = \frac{f(Z_i)}{g(Z_i)}\)`
+- La loi `\(g\)` est appelée *loi instrumentale*
+
+
+---
+class: my-one-page-font
+# Echantillonnage préférentiel
+
+**Exemple 1** : on veut calculer `\(\int_0^1 e^{-x}x^{-a} dx\)` pour `\(0 &lt; a &lt; 1\)`.
+
+--
+
+Monte Carlo classique &amp;rarr; `\(f\)` densité de la loi uniforme sur `\([0,1]\)` et `\(h(x) = e^{-x}x^{-a}\)`.
+
+--
+
+
+``` r
+set.seed(04022025)
+a &lt;- 1/2
+n &lt;- 1000
+X &lt;- runif(n)
+hX &lt;- exp(-X) * X^(-a)
+print(paste0("Estimation : ",mean(hX),", variance : ",var(hX)/n))
+```
+
+```
+## [1] "Estimation : 1.51278946224264, variance : 0.00492448440750204"
+```
+
+--
+
+Peut-on faire mieux ? 
+
+---
+# Echantillonnage préférentiel
+
+A quoi ressemble la fonction `\(h(x) = e^{-x}x^{-a}\)` ?
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-71-1.png" width="360" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Echantillonnage préférentiel
+
+A quoi ressemble la fonction `\(h(x) = e^{-x}x^{-a}\)` ? 
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-72-1.png" width="504" style="display: block; margin: auto;" /&gt;
+&amp;rarr; en échantillonnant selon la loi uniforme, on obtient des points répartis de façon **uniforme** sur `\([0,1]\)`.
+
+&amp;rarr; Peut-on trouver une loi d'échantillonnage qui produise plus de points proches de 0 ?
+
+
+---
+class: my-one-page-font
+# Echantillonnage préférentiel
+
+Echantillonnage préférentiel : `\(g(x) = (1-a) \ x^{-a} \mathbb{1}_{[0,1]}(x)\)` et `\(\tilde{h}(x) = e^{-x}/ (1-a).\)`
+
+--
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-73-1.png" width="360" style="display: block; margin: auto;" /&gt;
+--
+
+
+``` r
+Z &lt;- X^(1/(1-a))
+hZ &lt;- exp(-Z) / (1-a)
+print(paste0("Estimation : ",mean(hZ),", variance : ",var(hZ)/n))
+```
+
+```
+## [1] "Estimation : 1.51749207512399, variance : 0.000157397528531785"
+```
+
+On a diminué la variance par 100 pour une même taille d'échantillon.
+
+--
+Vraie valeur : 1.49365 (intégration numérique)
+
+
+---
+# Echantillonnage préférentiel
+
+Avant, on intégrait `\(h(x) = e^{-x}x^{-a}\)` en utilisant la loi uniforme sur `\([0,1]\)`.
+
+Maintenant, on intègre `\(\tilde{h}(x) = e^{-x}/(1-a)\)` en utilisant la loi de densité `\((1-a) \ x^{-a} \mathbb{1}_{[0,1]}(x)\)`.
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-75-1.png" width="864" style="display: block; margin: auto;" /&gt;
+
+---
+# Echantillonnage préférentiel
+
+**Exemple 2** : calculer `\(\mathbb{P}(X&gt;10)\)` pour `\(X \sim \mathcal{E}(1)\)`.
+--
+
+
+``` r
+1 - pexp(10) # vraie valeur calculée à l'aide de la fonction de répartition
+mean(rexp(1000)&gt;10) # estimation par Monte Carlo naïf
+```
+
+```
+## [1] 4.539993e-05
+## [1] 0
+```
+--
+
+L'estimateur est nul ... on n'a peut-être pas eu de chance sur ce tirage de 1000 ? Et si on ré-essayait ?
+
+
+---
+# Echantillonnage préférentiel
+
+On tire 100 fois un échantillon de taille `\(n=1000\)` et on regarde ce que vaut l'estimateur par Monte Carlo sur chacun de ces 100 tirages.
+
+
+``` r
+repet_1000 &lt;- sapply(1:100,FUN = function(i){mean(rexp(1000)&gt;10)})
+```
+
+--
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-78-1.png" width="288" style="display: block; margin: auto;" /&gt;
+&amp;rarr; l'estimateur vaut presque tout le temps 0 (96 fois sur 100), le reste du temps il vaut 0.001 (dans ces 4 cas, cela veut dire qu'une seule observation sur les 1000 du tirage était plus grande que 10).
+
+---
+# Echantillonnage préférentiel
+
+
+Que se passe t-il si on augmente la taille des échantillons ?
+
+
+``` r
+repet_1000 &lt;- sapply(1:100,FUN = function(i){mean(rexp(1000)&gt;10)})
+repet_10000 &lt;- sapply(1:100,FUN = function(i){mean(rexp(10000)&gt;10)})
+repet_100000 &lt;- sapply(1:100,FUN = function(i){mean(rexp(100000)&gt;10)})
+```
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-80-1.png" width="864" /&gt;
+
+&amp;rarr; on obtient des résultats "raisonnables" quand `\(n=100 000\)`, mais la variance reste très élevée.
+
+
+---
+# Echantillonnage préférentiel
+
+En prenant comme loi instrumentale `\(\mathcal{E}(1/10)\)`, on peut ré-écrire :
+
+`$$\mathbb{P}(X&gt;10) =\mathbb{E}\left(\mathbf{1}_{Z&gt;10} \ 10 \ e^{-9Z/10}\right) \quad \text{où } Z \sim \mathcal{E}(1/10)$$`
+En utilisant Monte-Carlo, on approche cette espérance à l'aide de la moyenne empirique d'un échantillon `\(Z_1,\dots,Z_n\)` de taille `\(n\)` de v.a. iid de loi exponentielle de paramètre 1/10.
+
+`$$\hat{p} = \frac{1}{n} \sum_{i=1}^n 10 \ e^{-0.9 Z_i} \mathbf{1}_{Z_i &gt; 10}$$`
+
+---
+# Echantillonnage préférentiel
+
+Code correspondant (pour un tirage, donc une estimation) :
+
+
+``` r
+Z &lt;- rexp(n,1/10)
+w &lt;- 10*exp(-9*Z/10)  # ou plus généralement : dexp(Z,1)/dexp(Z,1/10)
+mean(w*(Z&gt;10))
+```
+
+```
+## [1] 5.706653e-05
+```
+
+--
+
+On fait plusieurs tirages (plusieurs estimations de `\(p\)`) :
+
+
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-83-1.png" width="360" style="display: block; margin: auto;" /&gt;
+
+C'est beaucoup mieux qu'avec la loi "naïve" !
+
+---
+# Echantillonnage préférentiel
+
+Avec la loi `\(\mathcal{E}(1)\)` :
+
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-85-1.png" width="864" /&gt;
+Avec la loi `\(\mathcal{E}(1/10)\)` :
+
+
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-87-1.png" width="864" /&gt;
+
+
+
+---
+# Choix de la loi instrumentale
+
+- Calcul de la variance de `\(\tilde{h}_n\)`
+
+--
+
+- Choix optimal pour `\(g\)` &amp;rarr; celui qui minimise cette variance.
+
+
+&lt;span style="color:#16A085"&gt;**fin du cours 8 (04/02/2025)**&lt;/span&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
