@@ -187,6 +187,8 @@ MathJax.Hub.Config({
   - [Cours 6](#c6) (28/01/2025)
   - [Cours 7](#c7) (03/02/2025)
   - [Cours 8](#c8) (04/02/2025)
+  - [Cours 9](#c9) (10/02/2025)
+  - [Cours 10](#c10) (11/02/2025)
 
 ---
 name: c1
@@ -1379,7 +1381,7 @@ On peut utiliser l'estimateur de Monte-Carlo suivant :
 ---
 # Monte Carlo classique
 
-**Exemple :** on veut calculer `\(I=\mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])\)`
+**Exemple :** on veut calculer `\(I=2\pi \ \mathbb{E}((\sin^2(X) + 2\cos(3X))^2), \quad X \sim \mathcal{U}([0,2\pi])\)`
 
 On peut utiliser l'estimateur de Monte-Carlo suivant :
  1. on génère `\(X_1,\dots,X_n\)` i.i.d. de loi uniforme sur `\([0,2\pi]\)`
@@ -1430,7 +1432,7 @@ Pourquoi ?
 # Echantillonnage préférentiel
 
 &gt; *Définition.* Soit `\(Z_1,\dots,Z_n\)` un échantillon i.i.d. de loi `\(g\)`. L'estimateur par échantillonnage préférentiel de `\(\mu\)` est :
-`$$\tilde{h}_n = \frac{1}{n} \sum_{i=1}^n h(Z_i) \frac{f(Z_i)}{g(Z_i)} = \frac{1}{n} \sum_{i=1}^n w_i h(Z_i)$$`
+`$$\tilde{\mu}_n = \frac{1}{n} \sum_{i=1}^n h(Z_i) \frac{f(Z_i)}{g(Z_i)} = \frac{1}{n} \sum_{i=1}^n w_i h(Z_i)$$`
 
 Propriétés : (si `\(\text{supp}(f) \subset \text{supp}(g)\)`)
 
@@ -1645,6 +1647,235 @@ Avec la loi `\(\mathcal{E}(1/10)\)` :
 
 
 &lt;span style="color:#16A085"&gt;**fin du cours 8 (04/02/2025)**&lt;/span&gt;
+
+
+---
+name: c9
+# Choix de la loi instrumentale
+
+- Variance finie si le ratio `\(f/g\)` est borné (i.e. queues de distribution de `\(g\)` plus lourdes)
+
+- La variance est optimale lorsque `\(g \propto |h|f\)` ... mais cette fonction est inconnue
+
+--
+
+- En pratique : choisir `\(g\)` telle que `\(|h|f/g\)` soit (presque) constant, et de variance finie.
+
+
+
+---
+class: my-one-page-font
+# Choix de la loi instrumentale 
+
+Que se passe t-il lorsque le ratio `\(f/g\)` n'est pas borné ?
+
+--
+
+ **Exemple** : on veut approcher `\(\int x^2 e^{-x^2/2} dx = \sqrt{2\pi} \ \mathbb{E}(X^2)\)` avec `\(X \sim \mathcal{N}(0,1)\)`. 
+
+--
+
+ 1. en utilisant comme loi instrumentale la loi `\(\mathcal{N}(0,0.5^2)\)`.
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-88-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+---
+# Choix de la loi instrumentale 
+
+Code et approximation :
+
+
+``` r
+set.seed(10022025)
+n &lt;- 1000
+Z1 &lt;- rnorm(n,0,sd=0.5)
+w1 &lt;- dnorm(Z1,0,1)/dnorm(Z1,0,0.5)
+print(paste0("Estimation : ",sqrt(2*pi)*mean(Z1^2*w1),", variance : ",2*pi*var(Z1^2*w1)/n))
+print(paste0("IC : [",paste0(round(sqrt(2*pi)*mean(Z1^2*w1)+qnorm(c(0.025,0.975))*sqrt(2*pi*var(Z1^2*w1)/n),3),collapse=","),"]"))
+```
+
+```
+## [1] "Estimation : 1.76571757560692, variance : 0.0666274508629393"
+## [1] "IC : [1.26,2.272]"
+```
+
+Vraie valeur : `\(\sqrt{2 \pi} =\)` 2.5066283.
+
+---
+# Choix de la loi instrumentale 
+
+2. avec la loi instrumentale `\(\mathcal{N}(0,1.2^2)\)`
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-90-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Choix de la loi instrumentale 
+
+Code et approximation :
+
+
+``` r
+set.seed(10022025)
+n &lt;- 1000
+Z2 &lt;- rnorm(n,0,sd=1.2)
+w2 &lt;- dnorm(Z2,0,1)/dnorm(Z2,0,1.2)
+print(paste0("Estimation : ",sqrt(2*pi)*mean(Z2^2*w2),", variance : ",2*pi*var(Z2^2*w2)/n))
+print(paste0("IC : [",paste0(round(sqrt(2*pi)*mean(Z2^2*w2)+qnorm(c(0.025,0.975))*sqrt(2*pi*var(Z2^2*w2)/n),3),collapse=","),"]"))
+```
+
+```
+## [1] "Estimation : 2.58312378482309, variance : 0.00559442405726649"
+## [1] "IC : [2.437,2.73]"
+```
+
+On a divisé la variance par 11.
+
+Vraie valeur : `\(\sqrt{2 \pi} =\)` 2.5066283.
+
+&amp;rarr; calcul de la loi Gaussienne optimale.
+
+
+---
+class: my-one-page-font
+# Choix de la loi instrumentale
+
+Si le ratio `\(f/g\)` n'est pas borné, certains poids d'importance peuvent être *trop élevés* ce qui donne trop de poids à certaines observations extrêmes.
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-92-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-93-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Version auto-normalisée
+
+On peut définir une version *auto-normalisée* de l'estimateur (sous l'hypothèse que `\(g&gt;0\)` dès que `\(f&gt;0\)`):
+
+`$$\bar{\mu}_n = \frac{\sum_{i=1}^n h(Z_i) f(Z_i)/g(Z_i)}{\sum_{i=1}^n f(Z_i)/g(Z_i)} = \frac{\sum_{i=1}^n w_i h(Z_i)}{\sum_{i=1}^n w_i}$$`
+--
+
+Sur notre exemple, cela donne :
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-94-1.png" width="720" style="display: block; margin: auto;" /&gt;
+
+---
+# Version auto-normalisée
+
+En utilisant la version auto-normalisée, on obtient :
+ - un estimateur **biaisé**
+ - fortement consistant
+
+Intérêts/avantages :
+  - peut s'utiliser lorsque `\(f/g\)` est connue à une constante multiplicative près
+  - une variance plus faible .red[**dans certains cas**]
+  - permet également de *simuler* selon la loi `\(f\)`
+  
+Inconvénients :
+  - hypothèse plus forte sur `\(g\)` (`\(g&gt;0\)` dès que `\(f&gt;0\)`, alors qu'en EP classique l'hypothèse `\(g&gt;0\)` dès que `\(hf&gt;0\)` suffit)
+  - la variance est plus compliquée à calculer et ne peut pas être arbitrairement faible
+  
+  
+---
+# Version auto-normalisée
+
+Simulation selon la loi `\(f\)` :
+
+ &amp;rarr; en échantillonnant selon une loi **discrète** à support sur l'ensemble des `\(\{Z_1,\dots,Z_n\}\)`, et où la probabilité de tirer la valeur `\(Z_i\)` est `\(w_i /\sum_j w_j\)`.
+
+
+``` r
+Z &lt;- rnorm(10000,0,sd=1.5)
+w2 &lt;- dnorm(Z,0,1)/dnorm(Z,0,1.5)
+X &lt;- sample(Z, size = 2000, prob = w2/sum(w2))
+```
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-96-1.png" width="720" style="display: block; margin: auto;" /&gt;
+
+---
+# Version auto-normalisée
+
+.red[**Attention au biais introduit par la méthode**]
+
+- Il faut une **taille d'échantillon suffisante** car la méthode est seulement **asymptotiquement sans biais**
+- Pour échantillonner à l'aide des poids `\(w_i\)`, il faut tirer un échantillon plus petit que l'échantillon des `\((Z_1,\dots,Z_n)\)`
+- On perd le caractère "i.i.d."
+
+---
+# Version auto-normalisée
+
+**Exemple : ** on utilise les poids `\(w_i\)` obtenus après un EP de taille `\(n=1000\)` ou `\(n=10000\)` pour tirer un échantillon de taille 800 selon la loi `\(f\)`
+
+
+``` r
+Z &lt;- rnorm(1000,0,sd=1.5)
+w_1000 &lt;- dnorm(Z,0,1)/dnorm(Z,0,1.5)
+X_1000 &lt;- sample(Z, size = 800, prob = w_1000/sum(w_1000))
+
+Z &lt;- rnorm(10000,0,sd=1.5)
+w_10000 &lt;- dnorm(Z,0,1)/dnorm(Z,0,1.5)
+X_10000 &lt;- sample(Z, size = 800, prob = w_10000/sum(w_10000))
+```
+
+&lt;img src="slides_25_files/figure-html/unnamed-chunk-98-1.png" width="720" style="display: block; margin: auto;" /&gt;
+
+
+---
+# Taille effective de l'échantillon 
+
+- *effective sampling size* : pour identifier un mauvais choix de `\(g\)`
+  - par exemple, on a `\(\mathbb{E}(f(Z)/g(Z)) = 1\)` pour `\(Z \sim g\)` &amp;rarr; on peut comparer la moyenne empirique des `\(w_i\)` à 1
+  - critère ESS :
+    `$$ESS = \frac{\left( \sum_{i=1} w_i \right)^2}{\sum_{i=1}^n w_i^2} = \frac{1}{\sum_{i=1}^n \bar{w}_i^2},$$`
+      
+      avec `\(\bar{w}_i = \frac{w_i}{\sum_{i=1}^n w_i}\)` le poids d'importance normalisé
+
+
+Sur l'exemple précédent :
+
+|    Loi    | Moy. empirique des poids |    ESS    |
+|:---------:|:------------------------:|:---------:|
+| N(0,0.5²) |        0.9763350         | 91.65902  |
+| N(0,0.8²) |        0.9968692         | 859.86719 |
+| N(0,1.2²) |        1.0096987         | 956.92246 |
+
+---
+class: inverse, middle, center
+
+# 4. Réduction de variance
+
+---
+# Variables antithétiques
+
+- **Objectif : ** approcher `\(\mu = \int h(x)f(x)dx\)`
+
+- Permet de réduire la variance de l'estimateur en exploitant les propriétés de *symétrie* de la loi d'échantillonnage
+
+- Elle s'utilise lorsque la loi considérée est stable par transformation, i.e. s'il existe une transformation `\(\nu\)` telle que si `\(X \sim f\)` alors `\(\nu(X) \sim f\)`.
+
+- Quelques exemples de telles lois : uniformes, normales, student, (lois symétriques de façon générale), ...
+
+&gt;  *Définition.* Soit `\(X_1,\dots,X_n\)` un échantillon i.i.d. de loi `\(f\)`. L'estimateur de `\(\mu\)` par la méthode des variables antithétiques est :
+`$$\hat{\mu}_a = \frac{1}{n} \sum_{i=1}^n \frac{h(X_i) + h(\nu(X_i))}{2}$$`
+
+---
+# Variables antithétiques
+
+Propriétés :
+ - Sans biais
+ - Fortement consistant
+ - IC par TCL :
+ 
+ `$$\sqrt{n} (\hat{\mu}_a - \mu) \longrightarrow \mathcal{N}(0,\sigma_a^2)$$`
+ 
+Variance de l'estimateur :
+
+--
+
+`$$\text{Var}(\hat{\mu}_a) =  \frac{1}{2n} \text{Var}(h(X))(1+\rho),$$`
+où `\(\rho = \text{Cov}(h(X),h(\nu(X)))/\text{Var}(h(X))\)`
+
+&lt;span style="color:#16A085"&gt;**fin du cours 9 (10/02/2025)**&lt;/span&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
