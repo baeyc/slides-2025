@@ -2238,3 +2238,107 @@ $$\text{Var}(\hat{\mu}_a) =  \frac{1}{2n} \text{Var}(h(X))(1+\rho),$$
 où $\rho = \text{Cov}(h(X),h(\nu(X)))/\text{Var}(h(X))$
 
 <span style="color:#16A085">**fin du cours 9 (10/02/2025)**</span>
+
+
+---
+name: c10
+# Variables antithétiques
+
+Dans quel(s) cas cela fonctionne t-il ?
+
+> **Proposition :** si $h$ est monotone et si $\nu$ est décroissante, alors la méthode des variables antithétiques fournit un estimateur de variance plus faible qu'avec l'approche classique.
+
+*Preuve*
+
+---
+# Variables antithétiques
+
+**Exemple : ** estimer $\int_0^1 \frac{1}{1+x^2}dx$.
+
+```{r}
+n <- 1000
+u <- runif(n)
+h <- function(x){1/(1+x^2)}
+est1 <- mean(h(u))
+var1 <- mean((h(u)-est1)^2)/n
+u1 <- u[1:(n/2)]; u2 <- 1-u1
+v <- c(u1,u2)
+est2 <- mean(h(v))
+var2 <- mean((0.5*(h(u1)+h(u2)) - est2)^2)/(n/2)
+```
+
+```{r, echo=F}
+print(paste0("Estimateur 1 (MC classique) : ",round(est1,6)," variance : ",round(var1,10)))
+print(paste0("Estimateur 2 (variables antithétiques): ",round(est2,6)," variance : ",round(var2,10)))
+```
+
+Vraie valeur : $\arctan(1) =$ `r atan(1)`.
+
+---
+# Variables de contrôle
+
+L'objectif est d'utiliser une fonction auxiliaire dont on connaît l'espérance pour réduire la variance de l'estimateur.
+
+> **Définition : ** soit $h_0$ une fonction t.q. $\mathbb{E}(h_0(X)) = m$ est connue et de variance finie. Soit $c \in \mathbb{R}$. L'estimateur par variable de contrôle est :
+$$\hat{\mu}_c = \frac{1}{n} \sum_{i=1}^n [h(X_i) - c(h_0(X_i) - m)]$$
+
+Propriétés :
+ - Sans biais
+ - fortement consistant
+ - IC par TCL :
+  $$\sqrt{n} (\hat{\mu}_c - \mu) \longrightarrow \mathcal{N}(0,\sigma_c^2)$$
+
+---
+# Variables de contrôle
+
+Dans quel(s) cas cela fonctionne t-il ?
+
+> **Proposition : ** l'estimateur optimal (au sens de la variance) est obtenu pour $c^* = \frac{\text{Cov}(h(X),h_0(X))}{\text{Var}(h_0(X))}$
+
+```{r}
+n <- 1000
+X <- rnorm(n)
+hX <- X>2
+p1 <- mean(hX)
+var1 <- var(hX)/n
+h0X <- X>0
+copt <- 2*(1-pnorm(2))
+p2 <- mean(hX - copt*(h0X-0.5))
+var2 <- mean((hX - copt*(h0X-0.5) - p2)^2)/n
+```
+
+```{r, echo=F}
+print(paste0("Estimateur 1 (MC classique) : ",round(p1,6)," variance : ",round(var1,10)))
+print(paste0("Estimateur 2 (variable de contrôle): ",round(p2,6)," variance : ",round(var2,10)))
+```
+
+Vraie valeur : `r (1-pnorm(2))` et $c^* =$ `r 2*(1-pnorm(2))`.
+
+---
+# Variables de contrôle
+
+ - <span style="color:red">**En pratique le calcul de $c^*$ est impossible**</span>
+ - On peut l'estimer sur un premier échantillon de taille réduite (compromis entre les simulations supplémentaires nécessaires pour estimer $c^*$ et le gain en variance)
+
+```{r}
+n <- 300
+X <- rnorm(n)
+hX <- X>2
+h0X <- X>0
+copt_hat <- cov(hX,h0X)/var(h0X)
+n <- 1000
+X <- rnorm(n)
+hX <- X>2
+h0X <- X>0
+p2b <- mean(hX - copt*(h0X-0.5))
+var2b <- mean((hX - copt*(h0X-0.5) - p2)^2)/n
+```
+
+Approximation de $c^*$ : `r copt_hat`.
+
+```{r, echo=F}
+print(paste0("Estimateur : ",round(p2b,6)," variance : ",round(var2b,10)))
+```
+
+<span style="color:#16A085">**fin du cours 10 (11/02/2025)**</span>
+

@@ -1876,6 +1876,122 @@ Variance de l'estimateur :
 où `\(\rho = \text{Cov}(h(X),h(\nu(X)))/\text{Var}(h(X))\)`
 
 &lt;span style="color:#16A085"&gt;**fin du cours 9 (10/02/2025)**&lt;/span&gt;
+
+
+---
+name: c10
+# Variables antithétiques
+
+Dans quel(s) cas cela fonctionne t-il ?
+
+&gt; **Proposition :** si `\(h\)` est monotone et si `\(\nu\)` est décroissante, alors la méthode des variables antithétiques fournit un estimateur de variance plus faible qu'avec l'approche classique.
+
+*Preuve*
+
+---
+# Variables antithétiques
+
+**Exemple : ** estimer `\(\int_0^1 \frac{1}{1+x^2}dx\)`.
+
+
+``` r
+n &lt;- 1000
+u &lt;- runif(n)
+h &lt;- function(x){1/(1+x^2)}
+est1 &lt;- mean(h(u))
+var1 &lt;- mean((h(u)-est1)^2)/n
+u1 &lt;- u[1:(n/2)]; u2 &lt;- 1-u1
+v &lt;- c(u1,u2)
+est2 &lt;- mean(h(v))
+var2 &lt;- mean((0.5*(h(u1)+h(u2)) - est2)^2)/(n/2)
+```
+
+
+```
+## [1] "Estimateur 1 (MC classique) : 0.780915 variance : 2.67175e-05"
+```
+
+```
+## [1] "Estimateur 2 (variables antithétiques): 0.784972 variance : 4.041e-07"
+```
+
+Vraie valeur : `\(\arctan(1) =\)` 0.7853982.
+
+---
+# Variables de contrôle
+
+L'objectif est d'utiliser une fonction auxiliaire dont on connaît l'espérance pour réduire la variance de l'estimateur.
+
+&gt; **Définition : ** soit `\(h_0\)` une fonction t.q. `\(\mathbb{E}(h_0(X)) = m\)` est connue et de variance finie. Soit `\(c \in \mathbb{R}\)`. L'estimateur par variable de contrôle est :
+`$$\hat{\mu}_c = \frac{1}{n} \sum_{i=1}^n [h(X_i) - c(h_0(X_i) - m)]$$`
+
+Propriétés :
+ - Sans biais
+ - fortement consistant
+ - IC par TCL :
+  `$$\sqrt{n} (\hat{\mu}_c - \mu) \longrightarrow \mathcal{N}(0,\sigma_c^2)$$`
+
+---
+# Variables de contrôle
+
+Dans quel(s) cas cela fonctionne t-il ?
+
+&gt; **Proposition : ** l'estimateur optimal (au sens de la variance) est obtenu pour `\(c^* = \frac{\text{Cov}(h(X),h_0(X))}{\text{Var}(h_0(X))}\)`
+
+
+``` r
+n &lt;- 1000
+X &lt;- rnorm(n)
+hX &lt;- X&gt;2
+p1 &lt;- mean(hX)
+var1 &lt;- var(hX)/n
+h0X &lt;- X&gt;0
+copt &lt;- 2*(1-pnorm(2))
+p2 &lt;- mean(hX - copt*(h0X-0.5))
+var2 &lt;- mean((hX - copt*(h0X-0.5) - p2)^2)/n
+```
+
+
+```
+## [1] "Estimateur 1 (MC classique) : 0.022 variance : 2.15375e-05"
+```
+
+```
+## [1] "Estimateur 2 (variable de contrôle): 0.023502 variance : 2.09642e-05"
+```
+
+Vraie valeur : 0.0227501 et `\(c^* =\)` 0.0455003.
+
+---
+# Variables de contrôle
+
+ - &lt;span style="color:red"&gt;**En pratique le calcul de `\(c^*\)` est impossible**&lt;/span&gt;
+ - On peut l'estimer sur un premier échantillon de taille réduite (compromis entre les simulations supplémentaires nécessaires pour estimer `\(c^*\)` et le gain en variance)
+
+
+``` r
+n &lt;- 300
+X &lt;- rnorm(n)
+hX &lt;- X&gt;2
+h0X &lt;- X&gt;0
+copt_hat &lt;- cov(hX,h0X)/var(h0X)
+n &lt;- 1000
+X &lt;- rnorm(n)
+hX &lt;- X&gt;2
+h0X &lt;- X&gt;0
+p2b &lt;- mean(hX - copt*(h0X-0.5))
+var2b &lt;- mean((hX - copt*(h0X-0.5) - p2)^2)/n
+```
+
+Approximation de `\(c^*\)` : 0.0363636.
+
+
+```
+## [1] "Estimateur : 0.022865 variance : 2.09942e-05"
+```
+
+&lt;span style="color:#16A085"&gt;**fin du cours 10 (11/02/2025)**&lt;/span&gt;
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
